@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/setuptests.ts","./src/types.ts","./src/vite-env.d.ts","./src/__tests__/chatpanel.test.tsx","./src/__tests__/roleswitcher.test.tsx","./src/components/chatpanel.tsx","./src/components/opsdashboard.tsx","./src/components/roleswitcher.tsx"],"version":"5.9.3"}

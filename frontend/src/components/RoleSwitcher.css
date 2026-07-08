@@ -1,0 +1,26 @@
+.role-switcher {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.role-btn {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #2a3a55;
+  background: #0f1b30;
+  color: #c7d6ee;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.role-btn:hover {
+  border-color: #3b82f6;
+}
+
+.role-btn.active {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #3b82f6;
+}
