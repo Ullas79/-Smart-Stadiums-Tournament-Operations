@@ -79,6 +79,22 @@ docker compose up --build
 # Frontend: http://localhost:5173   Backend: http://localhost:8000
 ```
 
+### 5. Production deployment: backend on Render, frontend on Vercel
+
+The backend needs a **persistent process** (the MetLife simulator runs an
+asyncio tick task in the background), so it deploys to **Render** as a Docker
+web service — not serverless. The frontend is a static Vite build, deployed to
+**Vercel**. See `MANUAL_DEPLOY.md` for the full step-by-step runbook.
+
+Quick summary:
+1. **Backend → Render**: create a Blueprint from this repo (`render.yaml`),
+   set `GOOGLE_API_KEY` and `BACKEND_CORS_ORIGINS` (your Vercel URL). Render
+   builds `backend/Dockerfile` and serves it at `https://<your-backend>.onrender.com`.
+2. **Frontend → Vercel**: import the repo, set Root Directory = `frontend`,
+   set `VITE_API_BASE=https://<your-backend>.onrender.com`, deploy.
+3. Verify: `https://<your-backend>.onrender.com/health` → `{"status":"ok"}`,
+   then open the Vercel URL.
+
 ---
 
 ## Testing

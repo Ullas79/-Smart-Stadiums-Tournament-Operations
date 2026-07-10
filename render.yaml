@@ -1,0 +1,37 @@
+# Render Blueprint — backend web service for the Smart Stadiums Assistant.
+# Deploy via the Render dashboard ("New > Blueprint") pointing at this repo, or
+# `render deploy` with the Render CLI.
+#
+# The backend is a persistent FastAPI process, so the MetLife simulator's
+# asyncio tick task runs continuously (this would NOT work on serverless).
+services:
+  - type: web
+    name: smart-stadiums-backend
+    env: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Secret: set your Gemini API key in the Render dashboard (sync: false
+      # means Render will prompt for it instead of storing it in this file).
+      - key: GOOGLE_API_KEY
+        sync: false
+      # Comma-separated list of allowed frontend origins (your Vercel URL(s)).
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: SIM_TICK_SECONDS
+        value: "5"
+      - key: SIM_SPEED
+        value: "60"
+      - key: AGENT_MAX_TOOL_ITERATIONS
+        value: "6"
+      # Optional: switch to Vertex AI instead of the API-key Developer API.
+      # - key: GOOGLE_GENAI_USE_VERTEXAI
+      #   value: "true"
+      # - key: GOOGLE_CLOUD_PROJECT
+      #   sync: false
+      # - key: GOOGLE_CLOUD_LOCATION
+      #   value: "us-central1"
