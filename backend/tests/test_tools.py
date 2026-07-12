@@ -160,3 +160,24 @@ def test_tool_error_surfaces_structured(registry, ctx):
     # missing required arg -> handler should still return a dict (no raise escapes)
     res = registry.execute("get_crowd_density", {}, Role.FAN, c)
     assert "error" in res
+
+
+def test_find_route_accessible_stairs_fallback(registry, ctx):
+    c, _ = ctx
+    # Route from Gate North (G-N) to Lower North Seats (L-N) with accessible_only=True
+    # Lower North Seats are only reachable via stairs, so the route should succeed
+    # and have a penalty of 10000.0 meters added to the cost (total 10090.0).
+    res = registry.execute(
+        "find_route",
+        {"from_waypoint_id": "G-N", "to_waypoint_id": "L-N", "accessible_only": True},
+        Role.FAN,
+        c
+    )
+    assert "error" not in res
+    assert "steps" in res
+    assert res["accessible"] is True
+    # The normal route from G-N to L-N is: WP-G-N -> WP-C-L-N -> WP-Z-L-N
+    # Distances: G-N to C-L-N = 60m. C-L-N to Z-L-N = 30m (stairs).
+    # Since accessible_only is true, the stairs get a +10000m penalty, so total distance = 10090.0.
+    assert res["distance_m"] == 10090.0
+

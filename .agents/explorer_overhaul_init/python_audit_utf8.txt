@@ -1,0 +1,135 @@
+=== PYTHON STATIC ANALYSIS REPORT ===
+
+File: app/agent\loop.py
+  [-] Line 51: Function `generate()` - missing docstring
+  [-] Line 69: Function `__init__()` - missing docstring
+  [-] Line 79: Function `run()` - missing docstring
+  [-] Line 135: Function `_seed_history()` - missing docstring
+
+File: app/agent\prompt.py
+  [-] Line 44: Function `build_system_prompt()` - missing docstring
+
+File: app/api\routes.py
+  [-] Line 23: Function `trigger_scenario_route()` - missing docstring, missing return type hint
+  [-] Line 40: Function `health()` - missing docstring
+  [-] Line 45: Function `get_roles()` - missing docstring
+  [-] Line 55: Function `get_state()` - missing docstring, missing return type hint
+  [-] Line 61: Function `chat()` - missing docstring
+
+File: app/core\config.py
+  [-] Line 39: Function `cors_origins()` - missing docstring
+
+File: app/core\gemini.py
+  [-] Line 76: Bare or generic except block (except Exception (pass))
+  [-] Line 88: Duplicate import statement: `from google.genai import types` (original on line 32)
+  [-] Line 17: Function `_build_genai_client()` - missing docstring, missing return type hint
+  [-] Line 31: Function `_to_sdk_contents()` - missing docstring, missing return type hint
+  [-] Line 54: Function `_from_sdk_response()` - missing docstring, missing type hints for args: resp
+  [-] Line 84: Function `__init__()` - missing docstring, missing type hints for args: client
+  [-] Line 87: Function `generate()` - missing docstring, missing type hints for args: system_instruction, contents, tool_declarations, model, missing return type hint
+  [-] Line 110: Function `generate()` - missing docstring, missing type hints for args: system_instruction, contents, tool_declarations, model, missing return type hint
+  [-] Line 120: Function `make_client()` - missing docstring
+
+File: app/knowledge\store.py
+  [-] Line 80: Bare or generic except block (except Exception (has body))
+  [-] Line 98: Bare or generic except block (except Exception (return))
+  [-] Line 89: Duplicate import statement: `from google import genai` (original on line 67)
+  [-] Line 90: Duplicate import statement: `from google.genai import types` (original on line 68)
+  [-] Line 20: Function `_tokenize()` - missing docstring
+  [-] Line 24: Function `_cosine()` - missing docstring
+  [-] Line 36: Function `__init__()` - missing docstring
+  [-] Line 45: Function `_build_tfidf()` - missing docstring
+  [-] Line 60: Function `_ensure_embeddings()` - docstring missing 'Returns:' section
+  [-] Line 85: Function `_embed_query()` - missing docstring
+  [-] Line 102: Function `search()` - missing docstring
+  [-] Line 116: Function `_query_tfidf()` - missing docstring
+  [-] Line 122: Function `search_sync()` - docstring missing 'Args:' section, docstring missing 'Returns:' section
+  [-] Line 131: Function `_dot()` - missing docstring
+
+File: app/main.py
+  [-] Line 24: Duplicate import statement: `from .agent.loop import Agent` (original on line 13)
+  [-] Line 25: Duplicate import statement: `from .api.routes import router` (original on line 14)
+  [-] Line 26: Duplicate import statement: `from .core.config import settings` (original on line 15)
+  [-] Line 27: Duplicate import statement: `from .core.gemini import make_client` (original on line 16)
+  [-] Line 28: Duplicate import statement: `from .knowledge.store import KnowledgeStore` (original on line 17)
+  [-] Line 29: Duplicate import statement: `from .simulator import fixtures` (original on line 18)
+  [-] Line 30: Duplicate import statement: `from .simulator.engine import StadiumSimulator` (original on line 19)
+  [-] Line 31: Duplicate import statement: `from .tools.handlers import ToolContext` (original on line 20)
+  [-] Line 32: Duplicate import statement: `from .tools.registry import ToolRegistry, registry as default_registry` (original on line 21)
+  [-] Line 35: Function `default_agent_builder()` - docstring missing 'Args:' section, missing type hints for args: model, sim, knowledge, missing return type hint
+  [-] Line 42: Function `lifespan()` - missing docstring, missing return type hint
+  [-] Line 58: Function `create_app()` - missing docstring, missing type hints for args: agent_builder
+
+File: app/models\roles.py
+  [-] Line 78: Function `allowed_tools()` - missing docstring
+
+File: app/models\stadium.py
+  [-] Line 106: Function `make()` - missing docstring
+  [-] Line 144: Function `zone_by_id()` - missing docstring
+  [-] Line 147: Function `gate_by_id()` - missing docstring
+  [-] Line 150: Function `waypoint_by_id()` - missing docstring
+
+File: app/models\state.py
+  [-] Line 27: Function `level()` - missing docstring
+  [-] Line 90: Function `crowd_by_zone()` - missing docstring
+  [-] Line 93: Function `summary()` - docstring missing 'Returns:' section
+  [-] Line 104: Function `static_for()` - missing docstring
+
+File: app/simulator\engine.py
+  [-] Line 27: Function `_phase_for()` - missing docstring
+  [-] Line 71: Function `__init__()` - missing docstring
+  [-] Line 87: Function `_initialize_state()` - missing docstring
+  [-] Line 102: Function `step()` - docstring missing 'Args:' section
+  [-] Line 113: Function `_run()` - missing docstring
+  [-] Line 121: Function `start()` - missing docstring
+  [-] Line 125: Function `stop()` - missing docstring
+  [-] Line 135: Function `_is_concourse_zone()` - missing docstring
+  [-] Line 138: Function `_update_crowd()` - missing docstring
+  [-] Line 159: Function `_update_gates()` - missing docstring
+  [-] Line 190: Function `_update_transit()` - missing docstring
+  [-] Line 203: Function `_maybe_spawn_incident()` - missing docstring
+  [-] Line 230: Function `_update_incidents()` - missing docstring
+  [-] Line 248: Function `report_incident()` - missing docstring
+  [-] Line 262: Function `trigger_scenario()` - missing docstring
+  [-] Line 344: Function `snapshot()` - missing docstring
+
+File: app/simulator\fixtures.py
+  [-] Line 35: Function `load_venue()` - missing docstring
+  [-] Line 47: Function `load_levels()` - missing docstring
+  [-] Line 57: Function `load_zones()` - missing docstring
+  [-] Line 86: Function `load_gates()` - missing docstring
+  [-] Line 95: Function `load_amenities()` - docstring missing 'Returns:' section
+  [-] Line 112: Function `load_waypoints()` - missing docstring
+  [-] Line 137: Function `load_edges()` - docstring missing 'Returns:' section
+  [-] Line 142: Function `add()` - missing docstring
+  [-] Line 168: Function `load_parking()` - missing docstring
+  [-] Line 177: Function `load_transit()` - missing docstring
+  [-] Line 196: Function `load_stadium_model()` - missing docstring
+  [-] Line 210: Function `load_match_state()` - missing docstring, missing type hints for args: phase
+
+File: app/tools\handlers.py
+  [-] Line 22: Function `__init__()` - missing docstring
+  [-] Line 27: Function `snapshot()` - missing docstring
+  [-] Line 33: Function `get_crowd_density()` - missing docstring
+  [-] Line 52: Function `get_all_zones_status()` - missing docstring
+  [-] Line 69: Function `get_gate_status()` - missing docstring
+  [-] Line 80: Function `lookup_schedule()` - missing docstring
+  [-] Line 96: Function `find_route()` - missing docstring
+  [-] Line 120: Function `report_incident()` - missing docstring
+  [-] Line 130: Function `get_incidents()` - missing docstring
+  [-] Line 135: Function `recommend_action()` - docstring missing 'Args:' section, docstring missing 'Returns:' section
+  [-] Line 178: Function `translate_response()` - docstring missing 'Args:' section, docstring missing 'Returns:' section
+  [-] Line 190: Function `search_knowledge()` - missing docstring
+  [-] Line 199: Function `_gate_dict()` - missing docstring, missing type hints for args: gs
+  [-] Line 209: Function `_next_event()` - missing docstring
+  [-] Line 219: Function `_resolve_waypoint()` - docstring missing 'Args:' section, docstring missing 'Returns:' section
+  [-] Line 239: Function `_build_graph()` - missing docstring
+  [-] Line 248: Function `_shortest_path()` - missing docstring, missing return type hint
+
+File: app/tools\registry.py
+  [-] Line 146: Bare or generic except block (except Exception (return))
+  [-] Line 101: Function `__init__()` - missing docstring
+  [-] Line 116: Function `declarations_for_role()` - docstring missing 'Args:' section, docstring missing 'Returns:' section
+  [-] Line 132: Function `tool_names_for_role()` - missing docstring
+  [-] Line 136: Function `is_allowed()` - missing docstring
+  [-] Line 139: Function `execute()` - missing docstring

@@ -17,8 +17,15 @@
   gap: 0.75rem;
 }
 
+/* Enable dashed outline indicator for the scrollable chat messages history */
+.chat-messages:focus-visible {
+  outline: 2px dashed #3b82f6 !important;
+  outline-offset: -2px !important;
+  border-radius: 8px;
+}
+
 .chat-empty {
-  color: #6b7a93;
+  color: #7f8fa4;
   text-align: center;
   margin-top: 2rem;
 }
@@ -45,15 +52,21 @@
 }
 
 .chat-msg.pending {
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .chat-msg-role {
   font-size: 0.7rem;
-  opacity: 0.6;
   margin-bottom: 0.2rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.chat-msg.user .chat-msg-role {
+  color: #bfdbfe;
+}
+.chat-msg.assistant .chat-msg-role {
+  color: #9fb0cc;
 }
 
 .chat-tools {
@@ -89,7 +102,7 @@
   padding: 0.35rem 0.6rem;
   background: #0f1b30;
   color: #c7d6ee;
-  border: 1px solid #2a3a55;
+  border: 1px solid #506ea2;
   border-radius: 999px;
   cursor: pointer;
 }
@@ -112,13 +125,15 @@
   flex: 1;
   padding: 0.6rem 0.8rem;
   background: #0f1b30;
-  border: 1px solid #2a3a55;
+  border: 1px solid #506ea2;
   border-radius: 8px;
   color: #e6edf7;
   font-size: 0.92rem;
 }
 .chat-input input:focus {
-  outline: none;
+  /* Override outline: none to ensure keyboard users have visual feedback */
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
   border-color: #3b82f6;
 }
 

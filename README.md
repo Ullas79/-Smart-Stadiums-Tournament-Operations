@@ -100,10 +100,10 @@ Quick summary:
 ## Testing
 
 ```bash
-# Backend (46 tests)
+# Backend (172 tests including concurrency stress tests)
 cd backend && .venv/Scripts/python.exe -m pytest -q
 
-# Frontend (4 tests)
+# Frontend (7 component tests)
 cd frontend && npm test
 ```
 

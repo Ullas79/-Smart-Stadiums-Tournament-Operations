@@ -1,0 +1,117 @@
+diff --git a/frontend/src/App.css b/frontend/src/App.css
+index 1098bca..2098bca 100644
+--- a/frontend/src/App.css
++++ b/frontend/src/App.css
+@@ -47,5 +47,5 @@
+ .lang-picker select {
+   background: #0f1b30;
+   color: #e6edf7;
+-  border: 1px solid #2a3a55;
++  border: 1px solid #506ea2;
+   border-radius: 8px;
+diff --git a/frontend/src/components/ChatPanel.css b/frontend/src/components/ChatPanel.css
+index 2143bca..3143bca 100644
+--- a/frontend/src/components/ChatPanel.css
++++ b/frontend/src/components/ChatPanel.css
+@@ -20,3 +20,3 @@
+ .chat-empty {
+-  color: #6b7a93;
++  color: #7f8fa4;
+   text-align: center;
+@@ -47,3 +47,3 @@
+ .chat-msg.pending {
+-  opacity: 0.6;
++  opacity: 0.8;
+ }
+@@ -51,7 +51,13 @@
+ .chat-msg-role {
+   font-size: 0.7rem;
+-  opacity: 0.6;
+   margin-bottom: 0.2rem;
+   text-transform: uppercase;
+   letter-spacing: 0.04em;
+ }
++
++.chat-msg.user .chat-msg-role {
++  color: #bfdbfe;
++}
++.chat-msg.assistant .chat-msg-role {
++  color: #9fb0cc;
++}
+@@ -91,3 +97,3 @@
+   color: #c7d6ee;
+-  border: 1px solid #2a3a55;
++  border: 1px solid #506ea2;
+   border-radius: 999px;
+@@ -114,3 +120,3 @@
+   background: #0f1b30;
+-  border: 1px solid #2a3a55;
++  border: 1px solid #506ea2;
+   border-radius: 8px;
+diff --git a/frontend/src/components/OpsDashboard.css b/frontend/src/components/OpsDashboard.css
+index 2610bca..3610bca 100644
+--- a/frontend/src/components/OpsDashboard.css
++++ b/frontend/src/components/OpsDashboard.css
+@@ -70,8 +70,10 @@
+ .zone-label {
+   position: absolute;
+-  bottom: 1px;
++  bottom: 0;
++  left: 0;
+   width: 100%;
+   text-align: center;
+   font-size: 0.55rem;
+   color: #c7d6ee;
++  background: rgba(0, 0, 0, 0.7);
++  padding: 2px 0;
+ }
+@@ -163,3 +165,3 @@
+ .muted {
+-  color: #6b7a93;
++  color: #7f8fa4;
+   font-size: 0.82rem;
+diff --git a/frontend/src/components/RoleSwitcher.css b/frontend/src/components/RoleSwitcher.css
+index 406bca..506bca 100644
+--- a/frontend/src/components/RoleSwitcher.css
++++ b/frontend/src/components/RoleSwitcher.css
+@@ -8,3 +8,3 @@
+ .role-btn {
+   padding: 0.5rem 0.9rem;
+-  border: 1px solid #2a3a55;
++  border: 1px solid #506ea2;
+   background: #0f1b30;
+@@ -18,3 +18,3 @@
+ .role-btn:hover {
+-  border-color: #3b82f6;
++  border-color: #93c5fd;
+ }
+@@ -23,3 +23,3 @@
+   background: #1d4ed8;
+   color: #fff;
+-  border-color: #3b82f6;
++  border-color: #93c5fd;
+ }
+diff --git a/frontend/src/components/ScenarioPanel.css b/frontend/src/components/ScenarioPanel.css
+index 1781bca..2781bca 100644
+--- a/frontend/src/components/ScenarioPanel.css
++++ b/frontend/src/components/ScenarioPanel.css
+@@ -25,3 +25,3 @@
+   color: #e6edf7;
+-  border: 1px solid #2a3a55;
++  border: 1px solid #506ea2;
+   border-radius: 8px;
+@@ -54,3 +54,3 @@
+ .scenario-btn.danger-border {
+-  border-color: #ef444455;
++  border-color: #ef4444;
+ }
+@@ -62,3 +62,3 @@
+ .scenario-btn.warning-border {
+-  border-color: #f59e0b55;
++  border-color: #f59e0b;
+ }
+@@ -70,3 +70,3 @@
+ .scenario-btn.reset-btn {
+-  border-color: #10b98155;
++  border-color: #10b981;
+ }

@@ -22,7 +22,7 @@ from ..models.stadium import (
     Waypoint,
     Zone,
 )
-from ..models.state import MatchState
+from ..models.state import MatchPhase, MatchState
 
 # ---- Match timeline (sim seconds from sim start = gates open) ----
 # The Final: gates open at t=0, kickoff at 60min, halftime at 105min,
@@ -33,6 +33,11 @@ FULL_TIME_AT = 150 * 60
 
 
 def load_venue() -> Venue:
+    """Loads the static Venue metadata for MetLife Stadium.
+
+    Returns:
+        The Venue model instance.
+    """
     return Venue(
         name="MetLife Stadium",
         city="East Rutherford",
@@ -45,6 +50,11 @@ def load_venue() -> Venue:
 
 
 def load_levels() -> list[Level]:
+    """Loads the static Level configurations for the venue.
+
+    Returns:
+        A list of Level model instances.
+    """
     return [
         Level(name=LevelName.LOWER_BOWL, description="Field-level seating, closest to the pitch."),
         Level(name=LevelName.CLUB_LEVEL, description="Mid-level concourse with premium amenities."),
@@ -55,6 +65,11 @@ def load_levels() -> list[Level]:
 
 # 12 zones: four per bowl tier (North/South/East/West stands).
 def load_zones() -> list[Zone]:
+    """Loads the static seating Zone configurations for the venue.
+
+    Returns:
+        A list of Zone model instances.
+    """
     specs = [
         # (zone_id, name, level, capacity, gate_id, concourse_id)
         ("L-N", "Lower North", LevelName.LOWER_BOWL, 9000, "G-N", "C-L-N"),
@@ -84,6 +99,11 @@ def load_zones() -> list[Zone]:
 
 
 def load_gates() -> list[Gate]:
+    """Loads the static Gate configurations for the venue.
+
+    Returns:
+        A list of Gate model instances.
+    """
     return [
         Gate(gate_id="G-N", label="North Gate", served_zone_ids=["L-N", "C-N", "U-N"]),
         Gate(gate_id="G-S", label="South Gate", served_zone_ids=["L-S", "C-S", "U-S"]),
@@ -93,7 +113,11 @@ def load_gates() -> list[Gate]:
 
 
 def load_amenities() -> list[Amenity]:
-    """One of each amenity type per concourse quadrant (representative)."""
+    """One of each amenity type per concourse quadrant (representative).
+
+    Returns:
+        A list of Amenity model instances.
+    """
     am = []
     for conc in ["C-L-N", "C-L-S", "C-L-E", "C-L-W", "C-CL-N", "C-CL-S"]:
         wp = f"WP-{conc}"
@@ -110,6 +134,11 @@ def load_amenities() -> list[Amenity]:
 
 
 def load_waypoints() -> list[Waypoint]:
+    """Loads the static Waypoint configurations for the venue.
+
+    Returns:
+        A list of Waypoint model instances.
+    """
     wps = []
     # Gate plazas
     for g in ["G-N", "G-S", "G-E", "G-W"]:
@@ -136,7 +165,11 @@ def load_waypoints() -> list[Waypoint]:
 
 def load_edges() -> list[PathEdge]:
     """Indoor graph: gate plaza -> concourse -> seats, plus vertical connectors
-    between bowl tiers (escalator + elevator for accessibility)."""
+    between bowl tiers (escalator + elevator for accessibility).
+
+    Returns:
+        A list of PathEdge model instances.
+    """
     e: list[PathEdge] = []
 
     def add(a: str, b: str, kind: EdgeKind, dist: float) -> None:
@@ -166,6 +199,11 @@ def load_edges() -> list[PathEdge]:
 
 
 def load_parking() -> list[ParkingLot]:
+    """Loads the static ParkingLot configurations for the venue.
+
+    Returns:
+        A list of ParkingLot model instances.
+    """
     return [
         ParkingLot(lot_id="P-N", name="Lot N", nearest_gate_id="G-N", capacity=5000),
         ParkingLot(lot_id="P-S", name="Lot S", nearest_gate_id="G-S", capacity=5000),
@@ -175,6 +213,11 @@ def load_parking() -> list[ParkingLot]:
 
 
 def load_transit() -> list[TransitNode]:
+    """Loads the static TransitNode configurations for the venue.
+
+    Returns:
+        A list of TransitNode model instances.
+    """
     return [
         TransitNode(
             node_id="T-RAIL",
@@ -194,6 +237,11 @@ def load_transit() -> list[TransitNode]:
 
 
 def load_stadium_model() -> StadiumModel:
+    """Loads the full static StadiumModel with all venue details.
+
+    Returns:
+        The complete StadiumModel instance.
+    """
     return StadiumModel(
         venue=load_venue(),
         levels=load_levels(),
@@ -207,9 +255,16 @@ def load_stadium_model() -> StadiumModel:
     )
 
 
-def load_match_state(sim_time: float = 0.0, phase=None) -> MatchState:
-    from ..models.state import MatchPhase
+def load_match_state(sim_time: float = 0.0, phase: MatchPhase | None = None) -> MatchState:
+    """Loads the MatchState at the given simulation time and phase.
 
+    Args:
+        sim_time: The current simulator time in seconds.
+        phase: The current MatchPhase (optional).
+
+    Returns:
+        The MatchState model instance.
+    """
     return MatchState(
         match_id="WC2026-FINAL",
         name="FIFA World Cup 2026 Final",

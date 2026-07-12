@@ -1,0 +1,22 @@
+diff --git a/backend/app/tools/handlers.py b/backend/app/tools/handlers.py
+--- a/backend/app/tools/handlers.py
++++ b/backend/app/tools/handlers.py
+@@ -10,3 +10,4 @@
+ from collections import defaultdict
++from collections import OrderedDict
+ import heapq
+ from typing import Any
+@@ -494,3 +495,3 @@
+-_ROUTE_CACHE: dict[Any, tuple[list[str] | None, float]] = {}
++_ROUTE_CACHE: OrderedDict[Any, tuple[list[str] | None, float]] = OrderedDict()
+ 
+@@ -515,3 +516,4 @@
+     if cache_key in _ROUTE_CACHE:
++        _ROUTE_CACHE.move_to_end(cache_key)
+         path, dist = _ROUTE_CACHE[cache_key]
+         # Return a copy of the path list to prevent callers from mutating the cached list
+@@ -537,3 +539,3 @@
+     if len(_ROUTE_CACHE) >= 2048:
+-        _ROUTE_CACHE.clear()
++        _ROUTE_CACHE.popitem(last=False)
+     _ROUTE_CACHE[cache_key] = (path_found, dist_found)

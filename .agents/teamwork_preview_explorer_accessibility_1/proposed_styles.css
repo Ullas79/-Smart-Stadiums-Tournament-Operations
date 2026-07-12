@@ -1,0 +1,49 @@
+/* ==========================================================================
+   Smart Stadiums - Accessibility & Focus Style Recommendations
+   ========================================================================== */
+
+/* 1. Global Focus Outline Reset & Customization (for Keyboard Users) */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+div[tabindex="0"]:focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+/* 2. ChatPanel.css Accessibility Enhancements */
+.chat-input input:focus {
+  /* Override outline: none to ensure keyboard users have visual feedback */
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-color: #3b82f6;
+}
+
+/* Enable dashed outline indicator for the scrollable chat messages history */
+.chat-messages:focus-visible {
+  outline: 2px dashed #3b82f6 !important;
+  outline-offset: -2px !important;
+  border-radius: 8px;
+}
+
+/* 3. OpsDashboard.css Accessibility Enhancements */
+/* Focus indicator for the progressbar cells in the crowd density panel */
+.zone-cell:focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* 4. Visually Hidden Announcer utility (sr-only) for WCAG 4.1.3 Live Regions */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

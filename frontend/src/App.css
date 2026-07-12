@@ -47,7 +47,7 @@ body {
 .lang-picker select {
   background: #0f1b30;
   color: #e6edf7;
-  border: 1px solid #2a3a55;
+  border: 1px solid #506ea2;
   border-radius: 8px;
   padding: 0.4rem 0.6rem;
   font-size: 0.85rem;
@@ -71,3 +71,26 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* 1. Global Focus Outline Reset & Customization (for Keyboard Users) */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+div[tabindex="0"]:focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+/* 4. Visually Hidden Announcer utility (sr-only) for WCAG 4.1.3 Live Regions */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+

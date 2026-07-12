@@ -1,4 +1,4 @@
-export type Role = "fan" | "volunteer" | "organizer";
+export type Role = "fan" | "volunteer" | "organizer" | "staff";
 
 export interface RoleInfo {
   role: Role;

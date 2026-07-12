@@ -1,0 +1,74 @@
+diff --git a/backend/app/api/routes.py b/backend/app/api/routes.py
+--- a/backend/app/api/routes.py
++++ b/backend/app/api/routes.py
+@@ -127,5 +127,2 @@
+-@router.post("/api/incidents/dispatch", status_code=200)
+-@router.post("/incidents/dispatch", status_code=200)
+-@router.post("/api/incident/dispatch", status_code=200)
+-@router.post("/incident/dispatch", status_code=200)
++@router.post("/api/incidents/dispatch", status_code=200)
+ def dispatch_incident_route(req: DispatchRequest, request: Request) -> dict[str, Any]:
+@@ -145,5 +142,14 @@
+ 
++# Register dispatch aliases programmatically to avoid duplicate decorators and OpenAPI clashing
++for path in ["/incidents/dispatch", "/api/incident/dispatch", "/incident/dispatch"]:
++    router.add_api_route(
++        path,
++        dispatch_incident_route,
++        methods=["POST"],
++        status_code=200,
++        include_in_schema=False,
++    )
++
+-@router.post("/api/incidents/resolve", status_code=200)
+-@router.post("/incidents/resolve", status_code=200)
+-@router.post("/api/incident/resolve", status_code=200)
+-@router.post("/incident/resolve", status_code=200)
++@router.post("/api/incidents/resolve", status_code=200)
+ def resolve_incident_route(req: ResolveRequest, request: Request) -> dict[str, Any]:
+@@ -164,0 +171,9 @@
++
++# Register resolve aliases programmatically to avoid duplicate decorators and OpenAPI clashing
++for path in ["/incidents/resolve", "/api/incident/resolve", "/incident/resolve"]:
++    router.add_api_route(
++        path,
++        resolve_incident_route,
++        methods=["POST"],
++        status_code=200,
++        include_in_schema=False,
++    )
+diff --git a/backend/app/tools/registry.py b/backend/app/tools/registry.py
+--- a/backend/app/tools/registry.py
++++ b/backend/app/tools/registry.py
+@@ -198,11 +198,11 @@
+-    def execute(self, name: str, args: dict[str, Any], role: Role, ctx: handlers.ToolContext) -> dict[str, Any]:
++    def execute(self, name: str, tool_args: dict[str, Any] | None, role: Role, ctx: handlers.ToolContext) -> dict[str, Any]:
+         """Executes a tool handler with role authorization checks.
+ 
+         Args:
+             name: The name of the tool to execute.
+-            args: The arguments dictionary for the tool.
++            tool_args: The arguments dictionary for the tool (optional).
+             role: The role executing the tool.
+             ctx: The tool context.
+ 
+         Returns:
+             A dictionary representing the tool output or error.
+         """
+         if name not in self._handlers:
+             return {"error": f"Unknown tool '{name}'."}
+         if not self.is_allowed(name, role):
+             return {"error": f"PermissionDenied: Role '{role.value}' is not authorized to call '{name}'."}
+         try:
+-            return self._handlers[name](args or {}, ctx)
++            actual_args = tool_args or {}
++            return self._handlers[name](actual_args, ctx)
+         except Exception as exc:
+diff --git a/backend/app/agent/loop.py b/backend/app/agent/loop.py
+--- a/backend/app/agent/loop.py
++++ b/backend/app/agent/loop.py
+@@ -172,3 +172,3 @@
+                 else:
+-                    result = self.registry.execute(fc.name, fc.args or {}, role, self.ctx)
++                    result = self.registry.execute(fc.name, fc.args, role, self.ctx)
+                 error = isinstance(result, dict) and "error" in result

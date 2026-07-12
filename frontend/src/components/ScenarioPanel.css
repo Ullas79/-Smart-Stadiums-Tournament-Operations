@@ -1,0 +1,96 @@
+.scenario-panel {
+  background: #0b1424;
+  border: 1px solid #1e2c44;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.scenario-panel h3 {
+  margin: 0 0 0.8rem;
+  font-size: 0.95rem;
+  color: #9fb0cc;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scenario-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.5rem;
+}
+
+.scenario-btn {
+  background: #0f1b30;
+  color: #e6edf7;
+  border: 1px solid #506ea2;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.scenario-btn:hover:not(:disabled) {
+  background: #16243d;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+.scenario-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.scenario-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scenario-btn.danger-border {
+  border-color: #ef4444;
+}
+.scenario-btn.danger-border:hover:not(:disabled) {
+  background: #ef444415;
+  border-color: #ef4444;
+}
+
+.scenario-btn.warning-border {
+  border-color: #f59e0b;
+}
+.scenario-btn.warning-border:hover:not(:disabled) {
+  background: #f59e0b15;
+  border-color: #f59e0b;
+}
+
+.scenario-btn.reset-btn {
+  border-color: #10b981;
+}
+.scenario-btn.reset-btn:hover:not(:disabled) {
+  background: #10b98115;
+  border-color: #10b981;
+}
+
+.feedback-message {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.feedback-message.success {
+  background: #064e3b33;
+  color: #a7f3d0;
+  border: 1px solid #064e3b;
+}
+
+.feedback-message.error {
+  background: #7f1d1d33;
+  color: #fecaca;
+  border: 1px solid #7f1d1d;
+}

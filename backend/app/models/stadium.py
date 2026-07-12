@@ -8,11 +8,14 @@ README fidelity statement.
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 
 class LevelName(str, Enum):
+    """Represents stadium level names."""
+
     LOWER_BOWL = "Lower Bowl"
     CLUB_LEVEL = "Club Level"
     UPPER_BOWL = "Upper Bowl"
@@ -30,6 +33,8 @@ class EdgeKind(str, Enum):
 
 
 class Venue(BaseModel):
+    """Represents static stadium metadata and capacity."""
+
     name: str
     city: str
     state: str
@@ -40,6 +45,8 @@ class Venue(BaseModel):
 
 
 class Level(BaseModel):
+    """Represents a stadium level configuration."""
+
     name: LevelName
     description: str = ""
 
@@ -57,6 +64,8 @@ class Zone(BaseModel):
 
 
 class Gate(BaseModel):
+    """Represents a physical entrance gate in the stadium."""
+
     gate_id: str
     label: str
     served_zone_ids: list[str] = Field(default_factory=list)
@@ -64,6 +73,8 @@ class Gate(BaseModel):
 
 
 class AmenityType(str, Enum):
+    """Represents types of stadium amenities available to fans."""
+
     RESTROOM = "restroom"
     CONCESSION = "concession"
     FIRST_AID = "first_aid"
@@ -73,6 +84,8 @@ class AmenityType(str, Enum):
 
 
 class Amenity(BaseModel):
+    """Represents a specific amenity (e.g. food stand, restroom) in the stadium."""
+
     amenity_id: str
     name: str
     type: AmenityType
@@ -82,6 +95,8 @@ class Amenity(BaseModel):
 
 
 class Waypoint(BaseModel):
+    """Represents a navigation node within the stadium."""
+
     waypoint_id: str
     name: str
     level: LevelName
@@ -104,6 +119,17 @@ class PathEdge(BaseModel):
 
     @classmethod
     def make(cls, from_id: str, to_id: str, kind: EdgeKind, distance_m: float) -> "PathEdge":
+        """Creates a PathEdge, automatically determining accessibility.
+
+        Args:
+            from_id: The starting waypoint ID.
+            to_id: The ending waypoint ID.
+            kind: The connection type (e.g. stairs, elevator).
+            distance_m: The distance in meters.
+
+        Returns:
+            A new PathEdge instance.
+        """
         return cls(
             from_id=from_id,
             to_id=to_id,
@@ -114,6 +140,8 @@ class PathEdge(BaseModel):
 
 
 class ParkingLot(BaseModel):
+    """Represents a parking lot associated with the stadium."""
+
     lot_id: str
     name: str
     nearest_gate_id: str
@@ -121,6 +149,8 @@ class ParkingLot(BaseModel):
 
 
 class TransitNode(BaseModel):
+    """Represents a transit connection node (e.g. rail or bus station)."""
+
     node_id: str
     name: str
     mode: str  # "rail" | "bus"
@@ -141,11 +171,45 @@ class StadiumModel(BaseModel):
     parking: list[ParkingLot]
     transit: list[TransitNode]
 
+    _zones_by_id: dict[str, Zone] = PrivateAttr(default_factory=dict)
+    _gates_by_id: dict[str, Gate] = PrivateAttr(default_factory=dict)
+    _waypoints_by_id: dict[str, Waypoint] = PrivateAttr(default_factory=dict)
+
+    def model_post_init(self, __context: Any) -> None:
+        self._zones_by_id = {z.zone_id: z for z in self.zones}
+        self._gates_by_id = {g.gate_id: g for g in self.gates}
+        self._waypoints_by_id = {w.waypoint_id: w for w in self.waypoints}
+
     def zone_by_id(self, zone_id: str) -> Zone | None:
-        return next((z for z in self.zones if z.zone_id == zone_id), None)
+        """Finds a Zone by its unique ID.
+
+        Args:
+            zone_id: The ID of the zone to find.
+
+        Returns:
+            The Zone instance if found, otherwise None.
+        """
+        return self._zones_by_id.get(zone_id)
 
     def gate_by_id(self, gate_id: str) -> Gate | None:
-        return next((g for g in self.gates if g.gate_id == gate_id), None)
+        """Finds a Gate by its unique ID.
+
+        Args:
+            gate_id: The ID of the gate to find.
+
+        Returns:
+            The Gate instance if found, otherwise None.
+        """
+        return self._gates_by_id.get(gate_id)
 
     def waypoint_by_id(self, waypoint_id: str) -> Waypoint | None:
-        return next((w for w in self.waypoints if w.waypoint_id == waypoint_id), None)
+        """Finds a Waypoint by its unique ID.
+
+        Args:
+            waypoint_id: The ID of the waypoint to find.
+
+        Returns:
+            The Waypoint instance if found, otherwise None.
+        """
+        return self._waypoints_by_id.get(waypoint_id)
+

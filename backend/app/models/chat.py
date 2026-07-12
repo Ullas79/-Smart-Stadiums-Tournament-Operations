@@ -7,11 +7,15 @@ from .roles import Role
 
 
 class Message(BaseModel):
+    """Represents a message in the chat conversation history."""
+
     role: str  # "user" | "assistant" | "tool"
     content: str = ""
 
 
 class ChatRequest(BaseModel):
+    """Schema for incoming assistant chat requests."""
+
     role: Role = Role.FAN
     message: str
     history: list[Message] = Field(default_factory=list)
@@ -28,6 +32,8 @@ class ToolEvent(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    """Schema for outgoing assistant chat responses."""
+
     reply: str
     role: Role
     language: str
@@ -36,10 +42,15 @@ class ChatResponse(BaseModel):
 
 
 class RoleInfo(BaseModel):
+    """Schema detailing user role descriptions and allowed tools."""
+
     role: Role
     description: str
     tools: list[str]
 
 
 class RolesResponse(BaseModel):
+    """Schema returning a list of all role definitions."""
+
     roles: list[RoleInfo]
+

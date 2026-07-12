@@ -10,11 +10,21 @@ calling the network.
 """
 from __future__ import annotations
 
+import logging
+from typing import Any
+
+from ..agent.loop import AgentResponse, Contents, FunctionCall, GeminiClientProtocol
 from ..core.config import settings
-from ..agent.loop import AgentResponse, FunctionCall, GeminiClientProtocol, Contents
+
+logger = logging.getLogger(__name__)
 
 
-def _build_genai_client():
+def _build_genai_client() -> Any | None:
+    """Builds and returns the Google GenAI client based on configuration settings.
+
+    Returns:
+        An initialized google.genai.Client, or None if offline mode is active.
+    """
     from google import genai
 
     if settings.google_genai_use_vertexai:
@@ -28,7 +38,15 @@ def _build_genai_client():
     return None
 
 
-def _to_sdk_contents(contents: Contents):
+def _to_sdk_contents(contents: Contents) -> list[Any]:
+    """Converts normalized agent contents to Google GenAI SDK Content objects.
+
+    Args:
+        contents: The normalized conversation representation.
+
+    Returns:
+        A list of Google GenAI SDK Content objects.
+    """
     from google.genai import types
 
     out = []
@@ -51,7 +69,15 @@ def _to_sdk_contents(contents: Contents):
     return out
 
 
-def _from_sdk_response(resp) -> AgentResponse:
+def _from_sdk_response(resp: Any) -> AgentResponse:
+    """Converts a Google GenAI SDK response to a normalized AgentResponse.
+
+    Args:
+        resp: The response object returned by the Google GenAI SDK.
+
+    Returns:
+        A normalized AgentResponse instance.
+    """
     text_parts: list[str] = []
     calls: list[FunctionCall] = []
     # Prefer the structured function_calls helper when present.
@@ -73,18 +99,42 @@ def _from_sdk_response(resp) -> AgentResponse:
                             id=getattr(part.function_call, "id", "") or "",
                         )
                     )
-        except Exception:
-            pass
+        except (AttributeError, IndexError, TypeError, ValueError) as e:
+            logger.warning("Failed to parse candidate parts from SDK response: %s", e)
     if not calls and not text_parts:
         text_parts.append(getattr(resp, "text", "") or "")
     return AgentResponse(text="\n".join(text_parts) if text_parts else None, function_calls=calls)
 
 
 class RealGeminiClient(GeminiClientProtocol):
-    def __init__(self, client) -> None:
+    """Active Gemini client that communicates with the Google GenAI API."""
+
+    def __init__(self, client: Any) -> None:
+        """Initializes the RealGeminiClient with a GenAI client.
+
+        Args:
+            client: The initialized Google GenAI client.
+        """
         self._client = client
 
-    def generate(self, system_instruction, contents, tool_declarations, model):
+    def generate(
+        self,
+        system_instruction: str,
+        contents: Contents,
+        tool_declarations: list[Any],
+        model: str,
+    ) -> AgentResponse:
+        """Generates a response from the Google GenAI model using the API.
+
+        Args:
+            system_instruction: The instruction governing the model's behavior.
+            contents: The current conversation history including tool calls/responses.
+            tool_declarations: A list of functions/tools the model is allowed to call.
+            model: The model identifier to query.
+
+        Returns:
+            The response from the agent.
+        """
         from google.genai import types
 
         config = types.GenerateContentConfig(
@@ -107,7 +157,24 @@ class OfflineClient(GeminiClientProtocol):
     immediately with a clearly-marked offline notice.
     """
 
-    def generate(self, system_instruction, contents, tool_declarations, model):
+    def generate(
+        self,
+        system_instruction: str,
+        contents: Contents,
+        tool_declarations: list[Any],
+        model: str,
+    ) -> AgentResponse:
+        """Generates a mock offline response without calling the Gemini API.
+
+        Args:
+            system_instruction: The instruction governing the model's behavior.
+            contents: The current conversation history including tool calls/responses.
+            tool_declarations: A list of functions/tools the model is allowed to call.
+            model: The model identifier to query.
+
+        Returns:
+            A mock AgentResponse with offline notices.
+        """
         return AgentResponse(
             text=(
                 "[OFFLINE MODE] No Gemini API key configured. The assistant is running "
@@ -118,7 +185,13 @@ class OfflineClient(GeminiClientProtocol):
 
 
 def make_client() -> GeminiClientProtocol:
+    """Creates and returns either a RealGeminiClient or OfflineClient based on configuration.
+
+    Returns:
+        An instance of GeminiClientProtocol.
+    """
     client = _build_genai_client()
     if client is None:
         return OfflineClient()
     return RealGeminiClient(client)
+

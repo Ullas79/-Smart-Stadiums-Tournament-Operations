@@ -6,7 +6,7 @@
 
 .role-btn {
   padding: 0.5rem 0.9rem;
-  border: 1px solid #2a3a55;
+  border: 1px solid #506ea2;
   background: #0f1b30;
   color: #c7d6ee;
   border-radius: 999px;
@@ -16,11 +16,11 @@
 }
 
 .role-btn:hover {
-  border-color: #3b82f6;
+  border-color: #93c5fd;
 }
 
 .role-btn.active {
   background: #1d4ed8;
   color: #fff;
-  border-color: #3b82f6;
+  border-color: #93c5fd;
 }

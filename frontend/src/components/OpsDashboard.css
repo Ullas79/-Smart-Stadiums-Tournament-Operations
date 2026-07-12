@@ -69,11 +69,14 @@
 }
 .zone-label {
   position: absolute;
-  bottom: 1px;
+  bottom: 0;
+  left: 0;
   width: 100%;
   text-align: center;
   font-size: 0.55rem;
   color: #c7d6ee;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 0;
 }
 
 .gate-list,
@@ -161,6 +164,14 @@
 }
 
 .muted {
-  color: #6b7a93;
+  color: #7f8fa4;
   font-size: 0.82rem;
+}
+
+/* Focus indicator for the progressbar cells in the crowd density panel */
+.zone-cell:focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
 }

@@ -1,0 +1,235 @@
+diff --git a/backend/app/models/stadium.py b/backend/app/models/stadium.py
+index a123456..b789101 100644
+--- a/backend/app/models/stadium.py
++++ b/backend/app/models/stadium.py
+@@ -6,8 +6,9 @@
+ """
+ from __future__ import annotations
+ 
+ from enum import Enum
++from typing import Any
+ 
+-from pydantic import BaseModel, Field
++from pydantic import BaseModel, Field, PrivateAttr
+ 
+ 
+@@ -160,14 +161,22 @@
+ class StadiumModel(BaseModel):
+     """The full static description of the venue, loaded from fixtures."""
+ 
+     venue: Venue
+     levels: list[Level]
+     zones: list[Zone]
+     gates: list[Gate]
+     amenities: list[Amenity]
+     waypoints: list[Waypoint]
+     edges: list[PathEdge]
+     parking: list[ParkingLot]
+     transit: list[TransitNode]
+ 
++    _zones_by_id: dict[str, Zone] = PrivateAttr(default_factory=dict)
++    _gates_by_id: dict[str, Gate] = PrivateAttr(default_factory=dict)
++    _waypoints_by_id: dict[str, Waypoint] = PrivateAttr(default_factory=dict)
++
++    def model_post_init(self, __context: Any) -> None:
++        self._zones_by_id = {z.zone_id: z for z in self.zones}
++        self._gates_by_id = {g.gate_id: g for g in self.gates}
++        self._waypoints_by_id = {w.waypoint_id: w for w in self.waypoints}
++
+     def zone_by_id(self, zone_id: str) -> Zone | None:
+         """Finds a Zone by its unique ID.
+ 
+         Args:
+             zone_id: The ID of the zone to find.
+ 
+         Returns:
+             The Zone instance if found, otherwise None.
+         """
+-        return next((z for z in self.zones if z.zone_id == zone_id), None)
++        return self._zones_by_id.get(zone_id)
+ 
+     def gate_by_id(self, gate_id: str) -> Gate | None:
+         """Finds a Gate by its unique ID.
+ 
+         Args:
+             gate_id: The ID of the gate to find.
+ 
+         Returns:
+             The Gate instance if found, otherwise None.
+         """
+-        return next((g for g in self.gates if g.gate_id == gate_id), None)
++        return self._gates_by_id.get(gate_id)
+ 
+     def waypoint_by_id(self, waypoint_id: str) -> Waypoint | None:
+         """Finds a Waypoint by its unique ID.
+ 
+         Args:
+             waypoint_id: The ID of the waypoint to find.
+ 
+         Returns:
+             The Waypoint instance if found, otherwise None.
+         """
+-        return next((w for w in self.waypoints if w.waypoint_id == waypoint_id), None)
++        return self._waypoints_by_id.get(waypoint_id)
+diff --git a/backend/app/models/state.py b/backend/app/models/state.py
+index a223456..b889102 100644
+--- a/backend/app/models/state.py
++++ b/backend/app/models/state.py
+@@ -1,8 +1,9 @@
+ """Dynamic stadium state produced by the simulator."""
+ from __future__ import annotations
+ 
+ from enum import Enum
++from typing import Any
+ 
+-from pydantic import BaseModel, Field
++from pydantic import BaseModel, Field, PrivateAttr
+ 
+ from .stadium import Gate, Zone
+@@ -99,14 +100,21 @@
+ class StadiumSnapshot(BaseModel):
+     """A point-in-time view of the whole stadium, consumed by the agent,
+     the API, and the dashboard."""
+ 
+     venue_name: str
+     match: MatchState
+     crowd: list[CrowdDensity] = Field(default_factory=list)
+     gates: list[GateStatus] = Field(default_factory=list)
+     incidents: list[Incident] = Field(default_factory=list)
+     transit: list[TransitLoad] = Field(default_factory=list)
+ 
++    _crowd_by_zone: dict[str, CrowdDensity] = PrivateAttr(default_factory=dict)
++    _gates_by_id: dict[str, GateStatus] = PrivateAttr(default_factory=dict)
++
++    def model_post_init(self, __context: Any) -> None:
++        self._crowd_by_zone = {c.zone_id: c for c in self.crowd}
++        self._gates_by_id = {g.gate_id: g for g in self.gates}
++
+     def crowd_by_zone(self, zone_id: str) -> CrowdDensity | None:
+         """Retrieves the CrowdDensity object for the specified zone ID.
+ 
+         Args:
+             zone_id: The ID of the zone to find.
+ 
+         Returns:
+             The CrowdDensity object if found, otherwise None.
+         """
+-        return next((c for c in self.crowd if c.zone_id == zone_id), None)
++        return self._crowd_by_zone.get(zone_id)
++
++    def gate_by_id(self, gate_id: str) -> GateStatus | None:
++        """Retrieves the GateStatus object for the specified gate ID.
++
++        Args:
++            gate_id: The ID of the gate to find.
++
++        Returns:
++            The GateStatus object if found, otherwise None.
++        """
++        return self._gates_by_id.get(gate_id)
+diff --git a/backend/app/simulator/engine.py b/backend/app/simulator/engine.py
+index a323456..b989103 100644
+--- a/backend/app/simulator/engine.py
++++ b/backend/app/simulator/engine.py
+@@ -217,38 +217,35 @@
+         }.get(phase, 0)
+         for gid, gs in self._gates.items():
+             override = self._gate_overrides.get(gid)
+-            if override:
+-                gs.status = override
+-                if override == "closed":
+-                    gs.throughput_per_min = 0
+-                    gs.queue_minutes = 99.0
+-                elif override == "restricted":
+-                    base_tp = base // 2
+-                    tp = max(0, int(base_tp + self._rng.gauss(0, base_tp * 0.1))) if base_tp else 0
+-                    gs.throughput_per_min = tp
+-                    served = self.model.gate_by_id(gid)
+-                    dense = 0.0
+-                    if served:
+-                        zs = [self._crowd[z] for z in served.served_zone_ids if z in self._crowd]
+-                        dense = sum(z.density for z in zs) / len(zs) if zs else 0.0
+-                    gs.queue_minutes = max(15.0, tp / 60.0 + dense * 12.0)
+-                else: # open
+-                    tp = max(0, int(base + self._rng.gauss(0, base * 0.1))) if base else 0
+-                    gs.throughput_per_min = tp
+-                    served = self.model.gate_by_id(gid)
+-                    dense = 0.0
+-                    if served:
+-                        zs = [self._crowd[z] for z in served.served_zone_ids if z in self._crowd]
+-                        dense = sum(z.density for z in zs) / len(zs) if zs else 0.0
+-                    gs.queue_minutes = min(12.0, max(0.0, tp / 60.0 + dense * 6.0))
+-            else:
+-                tp = max(0, int(base + self._rng.gauss(0, base * 0.1))) if base else 0
+-                gs.throughput_per_min = tp
+-                # queue grows with throughput and nearby seat-zone density
+-                served = self.model.gate_by_id(gid)
+-                dense = 0.0
+-                if served:
+-                    zs = [self._crowd[z] for z in served.served_zone_ids if z in self._crowd]
+-                    dense = sum(z.density for z in zs) / len(zs) if zs else 0.0
+-                gs.queue_minutes = max(0.0, tp / 60.0 + dense * 6.0)
+-                # restrict a gate when its queue is bad
+-                gs.status = "restricted" if gs.queue_minutes > 12 else "open"
++            if override == "closed":
++                gs.status = "closed"
++                gs.throughput_per_min = 0
++                gs.queue_minutes = 99.0
++                continue
++
++            if override == "restricted":
++                base_tp = base // 2
++                tp = max(0, int(base_tp + self._rng.gauss(0, base_tp * 0.1))) if base_tp else 0
++            else:
++                tp = max(0, int(base + self._rng.gauss(0, base * 0.1))) if base else 0
++
++            gs.throughput_per_min = tp
++
++            served = self.model.gate_by_id(gid)
++            dense = 0.0
++            if served:
++                total_density = 0.0
++                count = 0
++                for z in served.served_zone_ids:
++                    cd = self._crowd.get(z)
++                    if cd:
++                        total_density += cd.density
++                        count += 1
++                dense = total_density / count if count > 0 else 0.0
++
++            if override == "restricted":
++                gs.status = "restricted"
++                gs.queue_minutes = max(15.0, tp / 60.0 + dense * 12.0)
++            elif override == "open":
++                gs.status = "open"
++                gs.queue_minutes = min(12.0, max(0.0, tp / 60.0 + dense * 6.0))
++            else:
++                gs.queue_minutes = max(0.0, tp / 60.0 + dense * 6.0)
++                gs.status = "restricted" if gs.queue_minutes > 12 else "open"
+diff --git a/backend/app/tools/handlers.py b/backend/app/tools/handlers.py
+index a423456..b089104 100644
+--- a/backend/app/tools/handlers.py
++++ b/backend/app/tools/handlers.py
+@@ -110,5 +110,5 @@
+     snap = ctx.snapshot()
+     gate_id = args.get("gate_id")
+     if gate_id:
+-        gs = next((g for g in snap.gates if g.gate_id == gate_id), None)
++        gs = snap.gate_by_id(gate_id)
+         if gs is None:
+             return {"error": f"Unknown gate_id '{gate_id}'.", "available_gate_ids": [g.gate_id for g in snap.gates]}
+         return _gate_dict(gs)
+     return {"gates": [_gate_dict(g) for g in snap.gates]}
+@@ -228,7 +228,11 @@
+     restricted_gates = [g for g in snap.gates if g.status == "restricted"]
+ 
+     if high_zones:
+-        names = [ctx.model.zone_by_id(c.zone_id).name for c in high_zones if ctx.model.zone_by_id(c.zone_id)]
++        names = []
++        for c in high_zones:
++            zone = ctx.model.zone_by_id(c.zone_id)
++            if zone:
++                names.append(zone.name)
+         recommendations.append(
+             f"High crowd density at {', '.join(names)} (>85% capacity). Operational mitigation plan:\n"
+             f"Step 1: Open secondary turnstiles and gates to maximize outflow/entry capacity.\n"
