@@ -16,7 +16,10 @@ Loop:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from ..core.config import settings
 from ..models.chat import Message, ToolEvent
