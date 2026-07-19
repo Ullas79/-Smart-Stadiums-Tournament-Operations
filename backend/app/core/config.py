@@ -47,6 +47,7 @@ class Settings(BaseSettings):
 
         Returns:
             A list of IP addresses or CIDR ranges.
+
         """
         return [p.strip() for p in self.trusted_proxies.split(",") if p.strip()]
 
@@ -63,6 +64,7 @@ class Settings(BaseSettings):
 
         Returns:
             A list of allowed CORS origin URLs.
+
         """
         return [o.strip() for o in self.backend_cors_origins.split(",") if o.strip()]
 

@@ -29,6 +29,7 @@ def _tokenize(text: str) -> list[str]:
 
     Returns:
         A list of lowercase word tokens.
+
     """
     return _WORD_RE.findall(text.lower())
 
@@ -42,6 +43,7 @@ def _cosine(a: dict[str, float], b: dict[str, float]) -> float:
 
     Returns:
         The cosine similarity score as a float.
+
     """
     if not a or not b:
         return 0.0
@@ -59,6 +61,7 @@ class KnowledgeStore:
 
         Args:
             docs: Optional list of document dicts containing 'title' and 'text'.
+
         """
         self.docs = docs if docs is not None else list(KNOWLEDGE_DOCS)
         self._vectors: list[list[float]] | None = None
@@ -93,6 +96,7 @@ class KnowledgeStore:
 
         Returns:
             True if embeddings were successfully loaded or generated, False otherwise.
+
         """
         if self._vectors is not None:
             return True
@@ -110,7 +114,7 @@ class KnowledgeStore:
                 contents=texts,
                 config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
             )
-            self._vectors = [list(e) for e in resp.embeddings]
+            self._vectors = [list(e.values) if e.values else [] for e in resp.embeddings] if resp.embeddings else []
             return True
         except Exception as e:
             # Network/auth failure -> fall back to keyword ranking.
@@ -126,6 +130,7 @@ class KnowledgeStore:
 
         Returns:
             The query embedding vector as a list of floats, or None on failure.
+
         """
         if self._client is None or self._vectors is None:
             return None
@@ -137,7 +142,8 @@ class KnowledgeStore:
                 contents=[query],
                 config=types.EmbedContentConfig(task_type="RETRIEVAL_QUERY"),
             )
-            return list(resp.embeddings[0])
+            emb = resp.embeddings[0] if resp.embeddings else None
+            return list(emb.values) if emb and emb.values else None
         except Exception as e:
             logger.warning("Gemini query embedding failed: %s", e)
             return None
@@ -154,6 +160,7 @@ class KnowledgeStore:
 
         Returns:
             A list of the top k document dictionaries.
+
         """
         has_embeddings = await self._ensure_embeddings()
         cache_key = (query, k, has_embeddings)
@@ -175,8 +182,8 @@ class KnowledgeStore:
                 return [dict(d) for d in results]
 
         # keyword fallback
-        qv = self._query_tfidf(query)
-        scored = sorted(((_cosine(qv, tv), i) for i, tv in enumerate(self._tfidf)), reverse=True)
+        qv_tfidf = self._query_tfidf(query)
+        scored = sorted(((_cosine(qv_tfidf, tv), i) for i, tv in enumerate(self._tfidf)), reverse=True)
         results = [self.docs[i] for s, i in scored[:k] if s > 0]
         if len(self._search_cache) >= 1024:
             self._search_cache.clear()
@@ -191,6 +198,7 @@ class KnowledgeStore:
 
         Returns:
             A dictionary mapping tokens to TF-IDF weights.
+
         """
         toks = _tokenize(query)
         tf = Counter(toks)
@@ -206,6 +214,7 @@ class KnowledgeStore:
 
         Returns:
             A list of the top k document dictionaries.
+
         """
         cache_key = (query, k, False)
         if cache_key in self._search_cache:
@@ -230,6 +239,7 @@ class KnowledgeStore:
 
         Returns:
             The dot product of the two vectors.
+
         """
         return sum(x * y for x, y in zip(a, b, strict=False))
 

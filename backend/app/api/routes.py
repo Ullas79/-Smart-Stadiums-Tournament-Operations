@@ -20,6 +20,7 @@ router = APIRouter()
 
 class ScenarioRequest(BaseModel):
     """Schema for triggering a simulator scenario."""
+
     scenario: str
 
 
@@ -37,6 +38,7 @@ def trigger_scenario_route(req: ScenarioRequest, request: Request, auth_role: st
 
     Raises:
         HTTPException: If the scenario name is invalid or simulation failed.
+
     """
     if auth_role != "organizer":
         raise HTTPException(status_code=403, detail="Only organizers can trigger scenarios")
@@ -62,6 +64,7 @@ def health() -> dict[str, str]:
 
     Returns:
         A dictionary with the health status.
+
     """
     return {"status": "ok"}
 
@@ -72,6 +75,7 @@ def get_roles() -> RolesResponse:
 
     Returns:
         A RolesResponse detailing each Role.
+
     """
     return RolesResponse(
         roles=[
@@ -90,6 +94,7 @@ def get_state(request: Request) -> dict[str, Any]:
 
     Returns:
         A dictionary representing the serialized StadiumSnapshot.
+
     """
     sim = request.app.state.simulator
     return sim.snapshot().model_dump()
@@ -108,6 +113,7 @@ def chat(req: ChatRequest, request: Request, auth_role: str = Depends(verify_rol
 
     Returns:
         A ChatResponse containing the agent's reply and any tool events.
+
     """
     if req.role != auth_role:
         raise HTTPException(status_code=403, detail=f"Cannot execute actions as {req.role.value} with {auth_role} token")

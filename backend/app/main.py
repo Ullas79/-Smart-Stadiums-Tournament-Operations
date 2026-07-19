@@ -7,10 +7,15 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Callable
+from typing import Callable, Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+import ipaddress
+import time
+from collections import defaultdict
 
 from .agent.loop import Agent
 from .api.routes import router
@@ -21,7 +26,7 @@ from .models.stadium import StadiumModel
 from .simulator import fixtures
 from .simulator.engine import StadiumSimulator
 from .tools.handlers import ToolContext
-from .tools.registry import ToolRegistry, registry as default_registry
+from .tools.registry import registry as default_registry
 
 
 def default_agent_builder(
@@ -36,6 +41,7 @@ def default_agent_builder(
 
     Returns:
         An initialized Agent instance configured with the tools and context.
+
     """
     ctx = ToolContext(simulator=sim, model=model, knowledge=knowledge)
     return Agent(client=make_llm_client(), registry=default_registry, ctx=ctx)
@@ -50,6 +56,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     Args:
         app: The FastAPI application instance.
+
     """
     model = fixtures.load_stadium_model()
     sim = StadiumSimulator(model=model, tick_seconds=settings.sim_tick_seconds, speed=settings.sim_speed)
@@ -66,12 +73,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await sim.stop()
 
 
-import ipaddress
-import time
-from collections import defaultdict
-from fastapi import Request, Response, HTTPException
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
+
 
 
 def is_trusted_ip(ip_str: str, trusted_list: list[str]) -> bool:
@@ -98,7 +100,7 @@ def is_trusted_ip(ip_str: str, trusted_list: list[str]) -> bool:
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Zero-dependency IP-based sliding window rate-limiting middleware."""
 
-    def __init__(self, app: FastAPI):
+    def __init__(self, app: Any):
         super().__init__(app)
         self.requests: dict[str, list[float]] = defaultdict(list)
 
@@ -167,6 +169,7 @@ def create_app(
 
     Returns:
         The configured FastAPI application instance.
+
     """
     app = FastAPI(
         title="Smart Stadiums Unified Assistant",

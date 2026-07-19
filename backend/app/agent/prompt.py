@@ -71,6 +71,7 @@ def build_system_prompt(role: Role, snapshot: StadiumSnapshot, language: str = "
 
     Returns:
         The compiled system prompt string.
+
     """
     role_desc = ROLE_DESCRIPTIONS[role]
     return (

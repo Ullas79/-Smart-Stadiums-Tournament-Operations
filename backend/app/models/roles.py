@@ -107,6 +107,7 @@ def allowed_tools(role: Role) -> frozenset[str]:
 
     Returns:
         A frozenset of tool name strings.
+
     """
     return ROLE_TOOLS[role]
 

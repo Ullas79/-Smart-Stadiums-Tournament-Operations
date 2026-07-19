@@ -34,6 +34,7 @@ class CrowdDensity(BaseModel):
 
         Returns:
             A string indicating "low", "moderate", or "high" density.
+
         """
         if self.density < 0.5:
             return "low"
@@ -99,7 +100,8 @@ class MatchState(BaseModel):
 
 class StadiumSnapshot(BaseModel):
     """A point-in-time view of the whole stadium, consumed by the agent,
-    the API, and the dashboard."""
+    the API, and the dashboard.
+    """
 
     venue_name: str
     match: MatchState
@@ -123,6 +125,7 @@ class StadiumSnapshot(BaseModel):
 
         Returns:
             The CrowdDensity object if found, otherwise None.
+
         """
         return self._crowd_by_zone.get(zone_id)
 
@@ -134,6 +137,7 @@ class StadiumSnapshot(BaseModel):
 
         Returns:
             The GateStatus object if found, otherwise None.
+
         """
         return self._gates_by_id.get(gate_id)
 
@@ -142,6 +146,7 @@ class StadiumSnapshot(BaseModel):
 
         Returns:
             A text summary summarizing the venue, phase, sim time, density, and active incidents.
+
         """
         active = [i for i in self.incidents if i.status == "active"]
         high = [c for c in self.crowd if c.level() == "high"]
@@ -161,6 +166,7 @@ class StadiumSnapshot(BaseModel):
 
         Returns:
             A string description.
+
         """
         return f"Zone {zone.name} (level {zone.level.value}, cap {zone.capacity})."
 

@@ -16,10 +16,10 @@ from typing import Any, Callable
 from ..models.roles import Role, allowed_tools
 from . import handlers
 
-logger = logging.getLogger(__name__)
-
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
+
+logger = logging.getLogger(__name__)
 
 class GetCrowdDensityArgs(BaseModel):
     zone_id: str = Field(..., description="Zone identifier, e.g. 'L-N', 'C-CL-S', 'U-E'.")
@@ -140,7 +140,7 @@ _SCHEMAS_PYDANTIC: dict[str, type[BaseModel]] = {
 def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(schema, dict):
         return schema
-    cleaned = {}
+    cleaned: dict[str, Any] = {}
     for k, v in schema.items():
         if k in {"title", "additionalProperties", "defaultValue", "default"}:
             continue
@@ -152,11 +152,11 @@ def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
             cleaned[k] = v
 
     if "anyOf" in cleaned:
-        types = [t for t in cleaned["anyOf"] if isinstance(t, dict) and t.get("type") != "null"]
-        if len(types) == 1:
-            cleaned.update(types[0])
-        elif len(types) > 1:
-            cleaned.update(types[0])
+        any_of = cleaned["anyOf"]
+        if isinstance(any_of, list):
+            types_list = [t for t in any_of if isinstance(t, dict) and t.get("type") != "null"]
+            if len(types_list) >= 1:
+                cleaned.update(types_list[0])
         del cleaned["anyOf"]
 
     return cleaned
@@ -217,6 +217,7 @@ class ToolRegistry:
 
         Returns:
             A list of dictionary objects representing the tool declarations.
+
         """
         names = allowed_tools(role)
         decls = []
@@ -241,6 +242,7 @@ class ToolRegistry:
 
         Returns:
             A list of tool name strings.
+
         """
         return sorted(allowed_tools(role))
 
@@ -254,6 +256,7 @@ class ToolRegistry:
 
         Returns:
             True if allowed, False otherwise.
+
         """
         return name in allowed_tools(role)
 
@@ -268,6 +271,7 @@ class ToolRegistry:
 
         Returns:
             A dictionary representing the tool output or error.
+
         """
         if name not in self._handlers:
             return {"error": f"Unknown tool '{name}'."}

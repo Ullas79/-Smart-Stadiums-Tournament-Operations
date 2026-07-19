@@ -34,6 +34,7 @@ def _phase_for(sim_time: float) -> MatchPhase:
 
     Returns:
         The corresponding MatchPhase enum value.
+
     """
     k = fixtures.KICKOFF_AT
     h = fixtures.HALFTIME_AT
@@ -89,6 +90,7 @@ class StadiumSimulator:
             model: The static stadium model venue configuration.
             tick_seconds: Real seconds between simulation ticks.
             speed: Speed factor (simulation seconds per real second).
+
         """
         self._lock = threading.RLock()
         self.model = model or fixtures.load_stadium_model()
@@ -128,6 +130,7 @@ class StadiumSimulator:
 
         Args:
             dt_sim_seconds: The number of simulation seconds to advance.
+
         """
         with self._lock:
             self.sim_time += dt_sim_seconds
@@ -176,6 +179,7 @@ class StadiumSimulator:
 
         Returns:
             True if the zone is a concourse, False otherwise.
+
         """
         return zone_id.startswith("C-")
 
@@ -185,6 +189,7 @@ class StadiumSimulator:
         Args:
             phase: The current MatchPhase.
             dt: The simulation time delta in seconds.
+
         """
         seat_target = _PHASE_SEAT_TARGET.get(phase, 0.0)
         concourse_boost = _PHASE_CONCOURSE_BOOST.get(phase, 0.0)
@@ -210,6 +215,7 @@ class StadiumSimulator:
 
         Args:
             phase: The current MatchPhase.
+
         """
         # Throughput depends on phase: arrival/pre-kickoff high, halftime low,
         # full-time high (exits), live near zero.
@@ -271,6 +277,7 @@ class StadiumSimulator:
 
         Args:
             phase: The current MatchPhase.
+
         """
         load = {
             MatchPhase.ARRIVAL: ("moderate", 8.0),
@@ -289,6 +296,7 @@ class StadiumSimulator:
 
         Args:
             phase: The current MatchPhase.
+
         """
         p = {
             MatchPhase.PRE_KICKOFF: 0.15,
@@ -320,6 +328,7 @@ class StadiumSimulator:
 
         Args:
             dt: The simulation time delta in seconds.
+
         """
         for inc in self._incidents:
             if inc.status != "active":
@@ -343,6 +352,7 @@ class StadiumSimulator:
 
         Returns:
             A list of gate ID strings.
+
         """
         with self._lock:
             return list(self._gates.keys())
@@ -352,6 +362,7 @@ class StadiumSimulator:
 
         Returns:
             A list of zone ID strings.
+
         """
         with self._lock:
             return list(self._crowd.keys())
@@ -367,6 +378,7 @@ class StadiumSimulator:
 
         Returns:
             The newly created Incident object.
+
         """
         with self._lock:
             inc = Incident(
@@ -394,6 +406,7 @@ class StadiumSimulator:
 
         Raises:
             ValueError: If the scenario name is invalid.
+
         """
         with self._lock:
             valid_scenarios = {"gate_malfunction", "medical_emergency", "concession_surge", "reset"}
@@ -491,6 +504,7 @@ class StadiumSimulator:
         Raises:
             KeyError: If the incident is not found.
             ValueError: If the incident is already resolved.
+
         """
         with self._lock:
             for i in self._incidents:
@@ -515,6 +529,7 @@ class StadiumSimulator:
         Raises:
             KeyError: If the incident is not found.
             ValueError: If the incident is already resolved.
+
         """
         with self._lock:
             for i in self._incidents:
@@ -540,6 +555,7 @@ class StadiumSimulator:
         Raises:
             KeyError: If the gate is not found.
             ValueError: If the status is invalid.
+
         """
         with self._lock:
             if gate_id not in self._gates:
@@ -578,6 +594,7 @@ class StadiumSimulator:
 
         Raises:
             KeyError: If the zone is not found.
+
         """
         with self._lock:
             if zone_id not in self._crowd:
@@ -605,6 +622,7 @@ class StadiumSimulator:
 
         Returns:
             The current StadiumSnapshot.
+
         """
         with self._lock:
             match: MatchState = fixtures.load_match_state(self.sim_time, _phase_for(self.sim_time))

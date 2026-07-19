@@ -37,6 +37,7 @@ def load_venue() -> Venue:
 
     Returns:
         The Venue model instance.
+
     """
     return Venue(
         name="MetLife Stadium",
@@ -54,6 +55,7 @@ def load_levels() -> list[Level]:
 
     Returns:
         A list of Level model instances.
+
     """
     return [
         Level(name=LevelName.LOWER_BOWL, description="Field-level seating, closest to the pitch."),
@@ -69,6 +71,7 @@ def load_zones() -> list[Zone]:
 
     Returns:
         A list of Zone model instances.
+
     """
     specs = [
         # (zone_id, name, level, capacity, gate_id, concourse_id)
@@ -103,6 +106,7 @@ def load_gates() -> list[Gate]:
 
     Returns:
         A list of Gate model instances.
+
     """
     return [
         Gate(gate_id="G-N", label="North Gate", served_zone_ids=["L-N", "C-N", "U-N"]),
@@ -117,6 +121,7 @@ def load_amenities() -> list[Amenity]:
 
     Returns:
         A list of Amenity model instances.
+
     """
     am = []
     for conc in ["C-L-N", "C-L-S", "C-L-E", "C-L-W", "C-CL-N", "C-CL-S"]:
@@ -138,6 +143,7 @@ def load_waypoints() -> list[Waypoint]:
 
     Returns:
         A list of Waypoint model instances.
+
     """
     wps = []
     # Gate plazas
@@ -169,6 +175,7 @@ def load_edges() -> list[PathEdge]:
 
     Returns:
         A list of PathEdge model instances.
+
     """
     e: list[PathEdge] = []
 
@@ -203,6 +210,7 @@ def load_parking() -> list[ParkingLot]:
 
     Returns:
         A list of ParkingLot model instances.
+
     """
     return [
         ParkingLot(lot_id="P-N", name="Lot N", nearest_gate_id="G-N", capacity=5000),
@@ -217,6 +225,7 @@ def load_transit() -> list[TransitNode]:
 
     Returns:
         A list of TransitNode model instances.
+
     """
     return [
         TransitNode(
@@ -241,6 +250,7 @@ def load_stadium_model() -> StadiumModel:
 
     Returns:
         The complete StadiumModel instance.
+
     """
     return StadiumModel(
         venue=load_venue(),
@@ -264,6 +274,7 @@ def load_match_state(sim_time: float = 0.0, phase: MatchPhase | None = None) -> 
 
     Returns:
         The MatchState model instance.
+
     """
     return MatchState(
         match_id="WC2026-FINAL",

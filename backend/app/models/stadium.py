@@ -129,6 +129,7 @@ class PathEdge(BaseModel):
 
         Returns:
             A new PathEdge instance.
+
         """
         return cls(
             from_id=from_id,
@@ -188,6 +189,7 @@ class StadiumModel(BaseModel):
 
         Returns:
             The Zone instance if found, otherwise None.
+
         """
         return self._zones_by_id.get(zone_id)
 
@@ -199,6 +201,7 @@ class StadiumModel(BaseModel):
 
         Returns:
             The Gate instance if found, otherwise None.
+
         """
         return self._gates_by_id.get(gate_id)
 
@@ -210,6 +213,7 @@ class StadiumModel(BaseModel):
 
         Returns:
             The Waypoint instance if found, otherwise None.
+
         """
         return self._waypoints_by_id.get(waypoint_id)
 

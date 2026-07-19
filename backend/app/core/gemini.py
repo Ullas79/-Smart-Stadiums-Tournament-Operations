@@ -24,6 +24,7 @@ def _build_genai_client() -> Any | None:
 
     Returns:
         An initialized google.genai.Client, or None if offline mode is active.
+
     """
     from google import genai
 
@@ -46,6 +47,7 @@ def _to_sdk_contents(contents: Contents) -> list[Any]:
 
     Returns:
         A list of Google GenAI SDK Content objects.
+
     """
     from google.genai import types
 
@@ -77,6 +79,7 @@ def _from_sdk_response(resp: Any) -> AgentResponse:
 
     Returns:
         A normalized AgentResponse instance.
+
     """
     text_parts: list[str] = []
     calls: list[FunctionCall] = []
@@ -114,6 +117,7 @@ class RealGeminiClient(LLMClientProtocol):
 
         Args:
             client: The initialized Google GenAI client.
+
         """
         self._client = client
 
@@ -134,6 +138,7 @@ class RealGeminiClient(LLMClientProtocol):
 
         Returns:
             The response from the agent.
+
         """
         from google.genai import types
 
@@ -189,6 +194,7 @@ class OfflineClient(LLMClientProtocol):
 
         Returns:
             A mock AgentResponse with offline notices.
+
         """
         return AgentResponse(
             text=(
@@ -204,6 +210,7 @@ def make_client() -> LLMClientProtocol:
 
     Returns:
         An instance of LLMClientProtocol.
+
     """
     client = _build_genai_client()
     if client is None:

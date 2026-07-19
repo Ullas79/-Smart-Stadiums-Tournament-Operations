@@ -19,8 +19,6 @@ from dataclasses import dataclass, field
 import logging
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from ..core.config import settings
 from ..models.chat import Message, ToolEvent
 from ..models.roles import Role
@@ -28,6 +26,10 @@ from ..models.state import StadiumSnapshot
 from ..tools.handlers import ToolContext
 from ..tools.registry import ToolRegistry
 from .prompt import build_system_prompt
+
+logger = logging.getLogger(__name__)
+
+
 
 
 @dataclass
@@ -75,6 +77,7 @@ class LLMClientProtocol:
 
         Returns:
             The response from the agent.
+
         """
         raise NotImplementedError
 
@@ -103,6 +106,7 @@ class Agent:
             client: The LLM API client protocol.
             registry: The tool registry to lookup and execute tools.
             ctx: The tool execution context.
+
         """
         self.client = client
         self.registry = registry
@@ -130,6 +134,7 @@ class Agent:
 
         Returns:
             The final AgentResult containing the response, tool events, and snapshot.
+
         """
         snapshot: StadiumSnapshot = self.ctx.snapshot()
         if self._is_unsafe(message):
@@ -205,6 +210,7 @@ class Agent:
 
         Returns:
             A list of dictionary parts normalized for the Gemini API.
+
         """
         contents: Contents = []
         for m in history or []:
@@ -222,6 +228,7 @@ class Agent:
 
         Returns:
             True if unsafe, False otherwise.
+
         """
         if len(message) >= settings.agent_max_message_chars:
             return True

@@ -13,7 +13,7 @@ import heapq
 from typing import Any
 
 from ..knowledge.store import KnowledgeStore
-from ..models.stadium import Gate, StadiumModel, Zone
+from ..models.stadium import StadiumModel
 from ..models.state import GateStatus, StadiumSnapshot
 from ..simulator.engine import StadiumSimulator
 
@@ -28,6 +28,7 @@ class ToolContext:
             simulator: The stadium simulator instance.
             model: The static stadium venue model.
             knowledge: The knowledge store instance.
+
         """
         self.simulator = simulator
         self.model = model
@@ -38,6 +39,7 @@ class ToolContext:
 
         Returns:
             The current StadiumSnapshot.
+
         """
         return self.simulator.snapshot()
 
@@ -53,6 +55,7 @@ def get_crowd_density(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing density metrics or error.
+
     """
     zone_id = args.get("zone_id", "")
     snap = ctx.snapshot()
@@ -81,6 +84,7 @@ def get_all_zones_status(args: dict[str, Any], ctx: ToolContext) -> dict[str, An
 
     Returns:
         A dictionary listing the match phase and metrics for all zones.
+
     """
     snap = ctx.snapshot()
     zones = []
@@ -107,6 +111,7 @@ def get_gate_status(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing status for one or all gates, or an error.
+
     """
     snap = ctx.snapshot()
     gate_id = args.get("gate_id")
@@ -127,6 +132,7 @@ def lookup_schedule(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing match phase and timing information.
+
     """
     snap = ctx.snapshot()
     m = snap.match
@@ -153,6 +159,7 @@ def find_route(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing route steps and total distance, or an error.
+
     """
     from_id = args.get("from_waypoint_id", "")
     to_id = args.get("to_waypoint_id", "")
@@ -187,6 +194,7 @@ def report_incident(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing details of the newly created incident.
+
     """
     type_ = args.get("type", "congestion")
     location = args.get("location", "")
@@ -206,6 +214,7 @@ def get_incidents(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing a list of active incidents.
+
     """
     snap = ctx.snapshot()
     return {"incidents": [i.model_dump() for i in snap.incidents]}
@@ -220,6 +229,7 @@ def recommend_action(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary detailing operational alerts and recommended steps.
+
     """
     snap = ctx.snapshot()
     recommendations: list[str] = []
@@ -284,6 +294,7 @@ def translate_response(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]
 
     Returns:
         A dictionary with translation instructions.
+
     """
     text = args.get("text", "")
     target = args.get("target_language", "en")
@@ -303,6 +314,7 @@ def search_knowledge(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary containing query and list of relevant document results.
+
     """
     query = args.get("query", "")
     k = int(args.get("k", 3))
@@ -320,6 +332,7 @@ def _gate_dict(gs: GateStatus) -> dict[str, Any]:
 
     Returns:
         A dictionary representation of the gate status.
+
     """
     return {
         "gate_id": gs.gate_id,
@@ -341,6 +354,7 @@ def _next_event(sim_time: float, kickoff: float, halftime: float, full_time: flo
 
     Returns:
         A string describing the next event and time remaining.
+
     """
     if sim_time < kickoff:
         return f"Kickoff in {int((kickoff - sim_time) / 60)} min."
@@ -360,6 +374,7 @@ def _resolve_waypoint(token: str, ctx: ToolContext) -> str:
 
     Returns:
         The resolved waypoint ID.
+
     """
     if not token:
         return token
@@ -388,6 +403,7 @@ def _waypoint_to_zone_id(waypoint_id: str, model: StadiumModel) -> str | None:
 
     Returns:
         The zone ID if mapped, otherwise None.
+
     """
     if not waypoint_id:
         return None
@@ -426,6 +442,7 @@ def _build_graph(ctx: ToolContext, accessible_only: bool, snap: StadiumSnapshot)
 
     Returns:
         A dictionary mapping waypoint IDs to lists of (neighbor_id, distance) tuples.
+
     """
     g: dict[str, list[tuple[str, float]]] = defaultdict(list)
 
@@ -506,6 +523,7 @@ def _shortest_path(ctx: ToolContext, src: str, dst: str, accessible_only: bool) 
 
     Returns:
         A tuple of (path_list, distance) where path_list is a list of waypoint IDs or None.
+
     """
     snap = ctx.snapshot()
     model_id = id(ctx.model)
@@ -551,6 +569,7 @@ def set_gate_status(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary representation of the updated GateStatus, or an error.
+
     """
     gate_id = args.get("gate_id")
     status = args.get("status")
@@ -574,6 +593,7 @@ def dispatch_staff(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
 
     Returns:
         A dictionary representation of the updated Incident, or an error.
+
     """
     incident_id = args.get("incident_id")
     assigned_staff = args.get("assigned_staff")
@@ -597,6 +617,7 @@ def mitigate_bottleneck(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any
 
     Returns:
         A dictionary detailing the mitigation action.
+
     """
     zone_id = args.get("zone_id")
     strategy = args.get("strategy")
