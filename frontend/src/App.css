@@ -39,17 +39,30 @@ body::before {
 .app-header {
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .app-header h1 {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #60a5fa, #c084fc);
+  background: linear-gradient(270deg, #10b981, #3b82f6, #8b5cf6, #10b981);
+  background-size: 800% 800%;
+  animation: glowText 15s ease infinite;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
   letter-spacing: -0.02em;
+}
+
+@keyframes glowText {
+  0% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
 }
 
 .app-header .subtitle {
@@ -58,6 +71,21 @@ body::before {
   font-size: 0.9rem;
   font-weight: 400;
   letter-spacing: 0.02em;
+}
+
+.weather-widget {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .app-controls {
@@ -83,7 +111,7 @@ body::before {
   color: #f1f5f9;
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 8px;
-  padding: 0.5rem 2rem 0.5rem 1rem;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
   font-size: 0.9rem;
   font-weight: 500;
   appearance: none;
@@ -121,6 +149,8 @@ body::before {
 .app-chat,
 .app-dashboard {
   min-height: 650px;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 860px) {
@@ -150,5 +180,3 @@ div[tabindex="0"]:focus-visible {
   white-space: nowrap;
   border: 0;
 }
-
-.app-header h1 { background: linear-gradient(270deg, #10b981, #3b82f6, #8b5cf6, #10b981); background-size: 800% 800%; animation: glowText 15s ease infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; } @keyframes glowText { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }

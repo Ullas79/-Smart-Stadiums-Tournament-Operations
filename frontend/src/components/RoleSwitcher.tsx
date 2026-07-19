@@ -1,12 +1,13 @@
 import { memo } from "react";
 import type { Role } from "../types";
+import { useTranslation } from "react-i18next";
 import "./RoleSwitcher.css";
 
-const ROLES: { value: Role; label: string; emoji: string }[] = [
-  { value: "fan", label: "Fan", emoji: "🎟️" },
-  { value: "volunteer", label: "Volunteer", emoji: "🦺" },
-  { value: "organizer", label: "Organizer", emoji: "🎛️" },
-  { value: "staff", label: "Staff", emoji: "🛠️" },
+const ROLES: { value: Role; emoji: string }[] = [
+  { value: "fan", emoji: "🎟️" },
+  { value: "volunteer", emoji: "🦺" },
+  { value: "organizer", emoji: "🎛️" },
+  { value: "staff", emoji: "🛠️" },
 ];
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const RoleSwitcher = memo(function RoleSwitcher({ role, onChange }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="role-switcher" role="group" aria-label="Select role">
       {ROLES.map((r) => (
@@ -24,7 +26,7 @@ export const RoleSwitcher = memo(function RoleSwitcher({ role, onChange }: Props
           onClick={() => onChange(r.value)}
           aria-pressed={role === r.value}
         >
-          <span aria-hidden="true">{r.emoji}</span> {r.label}
+          <span aria-hidden="true">{r.emoji}</span> {t(r.value)}
         </button>
       ))}
     </div>

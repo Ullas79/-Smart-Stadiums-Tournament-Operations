@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
+import { useTranslation } from "react-i18next";
 import { RoleSwitcher } from "./components/RoleSwitcher";
 import { ChatPanel } from "./components/ChatPanel";
 import { OpsDashboard } from "./components/OpsDashboard";
@@ -8,21 +9,8 @@ import { fetchState } from "./api";
 import type { Role, StadiumSnapshot } from "./types";
 import "./App.css";
 
-const LANGUAGES = ["en", "es", "pt", "fr", "ar", "zh", "ja", "de", "it"];
-
-const LANGUAGE_LABELS: Record<string, string> = {
-  en: "English",
-  es: "Español",
-  pt: "Português",
-  fr: "Français",
-  ar: "العربية",
-  zh: "中文",
-  ja: "日本語",
-  de: "Deutsch",
-  it: "Italiano",
-};
-
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [role, setRole] = useState<Role>("fan");
   const [language, setLanguage] = useState("en");
   const [snapshot, setSnapshot] = useState<StadiumSnapshot | null>(null);
@@ -34,10 +22,7 @@ export default function App() {
         const s = await fetchState();
         if (active) {
           setSnapshot((prev) => {
-            // Avoid triggering re-render if snapshot data is identical
-            if (JSON.stringify(prev) === JSON.stringify(s)) {
-              return prev;
-            }
+            if (JSON.stringify(prev) === JSON.stringify(s)) return prev;
             return s;
           });
         }
@@ -53,30 +38,39 @@ export default function App() {
     };
   }, []);
 
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lang = e.target.value;
+    setLanguage(lang);
+    i18n.changeLanguage(lang);
+  };
+
   return (
     <div className="app">
       <Toaster theme="dark" position="top-right" />
       <header className="app-header">
-        <h1><span aria-hidden="true">🏟️</span> Smart Stadiums Assistant</h1>
-        <p className="subtitle">FIFA World Cup 2026 Final · MetLife Stadium</p>
+        <div>
+          <h1><span aria-hidden="true">🏟️</span> {t('title')}</h1>
+          <p className="subtitle">{t('subtitle')}</p>
+        </div>
+        <div className="weather-widget" aria-label="Live stadium weather">
+          <span className="weather-icon">🌤️</span> {t('weather')}
+        </div>
       </header>
 
       <section className="app-controls" aria-label="Control panel">
         <RoleSwitcher role={role} onChange={setRole} />
         <label className="lang-picker" htmlFor="language-select">
-          Language
+          {t('language')}
+          <select
+            id="language-select"
+            value={language}
+            onChange={handleLanguageChange}
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+          </select>
         </label>
-        <select
-          id="language-select"
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-        >
-          {LANGUAGES.map((l) => (
-            <option key={l} value={l}>
-              {LANGUAGE_LABELS[l] || l}
-            </option>
-          ))}
-        </select>
       </section>
 
       <main className={`app-main ${role === "fan" ? "fan-mode" : "ops-mode"}`}>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 import type { Message, Role, ToolEvent } from "../types";
 import { sendChat } from "../api";
+import { useTranslation } from "react-i18next";
 import "./ChatPanel.css";
 
 interface Props {
@@ -38,6 +39,7 @@ const SUGGESTIONS: Record<Role, string[]> = {
 };
 
 export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -48,7 +50,6 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
   const busyRef = useRef(busy);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Synchronize state values into refs for callback stabilization and avoiding stale closures
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -57,7 +58,6 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
     busyRef.current = busy;
   }, [busy]);
 
-  // Handle scroll to bottom on new messages
   useEffect(() => {
     const el = scrollRef.current;
     if (el && typeof el.scrollTo === "function") {
@@ -65,7 +65,6 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
     }
   }, [messages]);
 
-  // Handle dynamic updates announcement for WCAG 4.1.3 compliance
   useEffect(() => {
     if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
@@ -82,7 +81,6 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
     }
   }, [messages]);
 
-  // Cancel any pending request when role or language changes, or component unmounts
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -95,11 +93,9 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
 
-    // Synchronously set busy status to prevent concurrent double-submissions
     busyRef.current = true;
     setBusy(true);
 
-    // Cancel any existing pending requests
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -110,7 +106,6 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
     const history: Message[] = currentMessages.map(({ role: r, content }) => ({ role: r, content }));
     const userMsg: DisplayMessage = { role: "user", content: trimmed };
     
-    // Assign a unique ID to the pending assistant reply to map/update it without scope errors or slicing bugs
     const pendingId = `pending-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const pendingMsg: DisplayMessage = { id: pendingId, role: "assistant", content: "", pending: true };
 
@@ -156,7 +151,6 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
 
   return (
     <section className="chat-panel" aria-label="Assistant chat">
-      {/* Dynamic Screen Reader Announcer */}
       <div className="sr-only" aria-live="polite" role="status" aria-atomic="true">
         {liveAnnouncement}
       </div>
@@ -169,12 +163,12 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
       >
         {messages.length === 0 && (
           <div className="chat-empty">
-            <p>Ask the Smart Stadiums Assistant about navigation, crowds, schedule, or incidents.</p>
+            <p>{t('chatEmpty')}</p>
           </div>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`chat-msg ${m.role} ${m.pending ? "pending" : ""}`}>
-            <div className="chat-msg-role">{m.role === "user" ? "You" : "Assistant"}</div>
+            <div className="chat-msg-role">{m.role === "user" ? t('you') : t('assistant')}</div>
             <div className="chat-msg-content">
               {m.pending ? (
                 <div className="typing-indicator">
@@ -187,7 +181,7 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
               )}
               {m.toolEvents && m.toolEvents.length > 0 && (
                 <details className="chat-tools">
-                  <summary>{m.toolEvents.length} tool call(s)</summary>
+                  <summary>{t('chatTools', { count: m.toolEvents.length })}</summary>
                   <ul>
                     {m.toolEvents.map((t, j) => (
                       <li key={j} className={t.error ? "tool-error" : ""}>
@@ -234,12 +228,12 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={`Ask as ${role}…`}
+          placeholder={t('askPlaceholder', { role: t(role) })}
           disabled={busy}
           aria-label="Message text"
         />
         <button type="submit" disabled={busy || !input.trim()}>
-          Send
+          {t('send')}
         </button>
       </form>
     </section>

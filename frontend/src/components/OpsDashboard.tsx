@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import type { StadiumSnapshot } from "../types";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   BarChart,
   Bar,
@@ -36,17 +37,15 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export const OpsDashboard = memo(
   function OpsDashboard({ snapshot }: Props) {
+    const { t } = useTranslation();
     const prevSnapshotRef = useRef<StadiumSnapshot | null>(null);
     const [liveAnnouncement, setLiveAnnouncement] = useState("");
 
-    // Detect critical dynamic changes to announce via live region (WCAG 4.1.3 Compliance)
     useEffect(() => {
       if (!snapshot) return;
       const prev = prevSnapshotRef.current;
       if (prev) {
         const alerts: string[] = [];
-
-        // 1. Check for new crowd density spikes > 85%
         snapshot.crowd.forEach((c) => {
           const prevZone = prev.crowd.find((pz) => pz.zone_id === c.zone_id);
           const prevDensity = prevZone ? prevZone.density : 0;
@@ -55,8 +54,6 @@ export const OpsDashboard = memo(
             toast.error(`Critical Density: ${c.zone_name}`, { description: `Density reached ${Math.round(c.density * 100)}%` });
           }
         });
-
-        // 2. Check for newly spawned active incidents
         snapshot.incidents.forEach((i) => {
           const prevInc = prev.incidents.find((pi) => pi.incident_id === i.incident_id);
           if (!prevInc) {
@@ -68,8 +65,6 @@ export const OpsDashboard = memo(
             }
           }
         });
-
-        // 3. Check for gate status transitions
         snapshot.gates.forEach((g) => {
           const prevGate = prev.gates.find((pg) => pg.gate_id === g.gate_id);
           if (prevGate && prevGate.status !== g.status) {
@@ -77,7 +72,6 @@ export const OpsDashboard = memo(
             toast.info(`Gate Status Update`, { description: `Gate ${g.label} is now ${g.status}` });
           }
         });
-
         if (alerts.length > 0) {
           setLiveAnnouncement(alerts.join(" "));
         }
@@ -88,14 +82,12 @@ export const OpsDashboard = memo(
     if (!snapshot) {
       return (
         <div className="ops-dashboard" role="status" aria-live="polite">
-          <div className="live-indicator">Loading live state…</div>
+          <div className="live-indicator">{t('loading')}</div>
         </div>
       );
     }
 
     const { match, crowd, gates, incidents, transit } = snapshot;
-
-    // Prepare chart data
     const chartData = crowd.map(c => ({
       ...c,
       densityPercent: Math.round(c.density * 100),
@@ -104,7 +96,6 @@ export const OpsDashboard = memo(
 
     return (
       <section className="ops-dashboard" aria-label="Live operations dashboard">
-        {/* Dynamic accessibility alerts for live state changes */}
         <div className="sr-only" aria-live="polite" role="status" aria-atomic="true">
           {liveAnnouncement}
         </div>
@@ -112,14 +103,13 @@ export const OpsDashboard = memo(
         <header className="dashboard-header">
           <h2>{snapshot.venue_name}</h2>
           <div className="live-indicator" aria-label={`Match Phase: ${phaseLabel(match.phase)}`}>
-            Phase: {phaseLabel(match.phase)}
+            {t('phase', { phase: phaseLabel(match.phase) })}
           </div>
         </header>
 
         <div className="dashboard-grid">
-          {/* Crowd Density Chart */}
           <section className="stat-card" aria-labelledby="crowd-density-heading" style={{ gridColumn: "1 / -1", height: "250px" }}>
-            <h3 id="crowd-density-heading" className="stat-title">Crowd Density Matrix</h3>
+            <h3 id="crowd-density-heading" className="stat-title">{t('crowdDensity')}</h3>
             <div style={{ flex: 1, minHeight: 0, marginTop: "1rem" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
@@ -137,9 +127,8 @@ export const OpsDashboard = memo(
             </div>
           </section>
 
-          {/* Gates Card */}
           <section className="stat-card" aria-labelledby="gates-heading">
-            <h3 id="gates-heading" className="stat-title">Gates & Queues</h3>
+            <h3 id="gates-heading" className="stat-title">{t('gates')}</h3>
             {gates.map((g) => (
               <div key={g.gate_id} className="density-meter">
                 <div className="density-label">
@@ -153,11 +142,10 @@ export const OpsDashboard = memo(
             ))}
           </section>
 
-          {/* Incidents Card */}
           <section className="stat-card" aria-labelledby="incidents-heading">
-            <h3 id="incidents-heading" className="stat-title">Active Incidents ({incidents.length})</h3>
+            <h3 id="incidents-heading" className="stat-title">{t('activeIncidents', { count: incidents.length })}</h3>
             {incidents.length === 0 ? (
-              <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No active incidents.</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{t('noIncidents')}</div>
             ) : (
               <div className="incidents-list">
                 {incidents.map((i) => (
@@ -173,17 +161,16 @@ export const OpsDashboard = memo(
             )}
           </section>
 
-          {/* Transit Card */}
           <section className="stat-card" aria-labelledby="transit-heading">
-            <h3 id="transit-heading" className="stat-title">Transit Wait Times</h3>
-            {transit.map((t) => (
-              <div key={t.node_id} className="density-meter">
+            <h3 id="transit-heading" className="stat-title">{t('transit')}</h3>
+            {transit.map((tItem) => (
+              <div key={tItem.node_id} className="density-meter">
                 <div className="density-label">
-                  <span>{t.name} ({t.congestion})</span>
-                  <span>{t.wait_minutes.toFixed(0)}m</span>
+                  <span>{tItem.name} ({tItem.congestion})</span>
+                  <span>{tItem.wait_minutes.toFixed(0)}m</span>
                 </div>
-                <div className={`density-bar-bg density-${t.congestion === 'heavy' ? 'critical' : t.congestion === 'moderate' ? 'warning' : 'safe'}`}>
-                  <div className="density-bar-fill" style={{ width: `${Math.min((t.wait_minutes / 60) * 100, 100)}%` }} />
+                <div className={`density-bar-bg density-${tItem.congestion === 'heavy' ? 'critical' : tItem.congestion === 'moderate' ? 'warning' : 'safe'}`}>
+                  <div className="density-bar-fill" style={{ width: `${Math.min((tItem.wait_minutes / 60) * 100, 100)}%` }} />
                 </div>
               </div>
             ))}
