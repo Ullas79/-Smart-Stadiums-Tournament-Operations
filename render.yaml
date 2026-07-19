@@ -8,6 +8,7 @@ services:
   - type: web
     name: smart-stadiums-backend
     env: docker
+    plan: free
     rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
