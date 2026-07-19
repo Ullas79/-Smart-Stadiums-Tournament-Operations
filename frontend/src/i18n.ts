@@ -54,6 +54,31 @@ i18n
           "you": "Tú",
           "assistant": "Asistente"
         }
+      },
+      fr: {
+        translation: {
+          "title": "Assistant Stades Intelligents",
+          "subtitle": "Finale Coupe du Monde 2026 · MetLife Stadium",
+          "language": "Langue",
+          "fan": "Supporter",
+          "volunteer": "Bénévole",
+          "organizer": "Organisateur",
+          "staff": "Personnel",
+          "loading": "Chargement en direct…",
+          "phase": "Phase: {{phase}}",
+          "send": "Envoyer",
+          "askPlaceholder": "Demander en tant que {{role}}…",
+          "weather": "22°C Partiellement Nuageux",
+          "noIncidents": "Aucun incident actif.",
+          "activeIncidents": "Incidents Actifs ({{count}})",
+          "crowdDensity": "Matrice de Densité",
+          "gates": "Portes et Files d'attente",
+          "transit": "Temps de Transit",
+          "chatEmpty": "Posez des questions sur la navigation, les foules, les horaires ou les incidents.",
+          "chatTools": "{{count}} outil(s)",
+          "you": "Vous",
+          "assistant": "Assistant"
+        }
       }
     },
     lng: "en",
