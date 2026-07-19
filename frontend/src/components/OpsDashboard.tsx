@@ -6,11 +6,7 @@ interface Props {
   snapshot: StadiumSnapshot | null;
 }
 
-function densityColor(level: string): string {
-  if (level === "high") return "#ef4444";
-  if (level === "moderate") return "#f59e0b";
-  return "#22c55e";
-}
+
 
 function phaseLabel(phase: string): string {
   return phase.replace(/_/g, " ");
