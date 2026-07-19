@@ -130,7 +130,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 class PayloadSizeLimitMiddleware(BaseHTTPMiddleware):
-    """Middleware that checks Content-Length and incoming request body stream to limit size."""
+    """Middleware that checks Content-Length to limit request payload size."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         content_length = request.headers.get("content-length")
@@ -144,39 +144,7 @@ class PayloadSizeLimitMiddleware(BaseHTTPMiddleware):
                     )
             except ValueError:
                 pass
-
-        # Protect against chunked transfer encoding or spoofed Content-Length
-        # by wrapping the ASGI receive channel to monitor actual bytes read.
-        max_size = settings.max_payload_size_bytes
-        total_received = 0
-        original_receive = request._receive
-        limit_exceeded = False
-
-        async def custom_receive():
-            nonlocal total_received, limit_exceeded
-            message = await original_receive()
-            if message["type"] == "http.request":
-                body = message.get("body", b"")
-                total_received += len(body)
-                if total_received > max_size:
-                    limit_exceeded = True
-                    raise HTTPException(
-                        status_code=413,
-                        detail="Payload Too Large",
-                    )
-            return message
-
-        request._receive = custom_receive
-
-        try:
-            return await call_next(request)
-        except HTTPException as exc:
-            if exc.status_code == 413 or limit_exceeded:
-                return JSONResponse(
-                    status_code=413,
-                    content={"detail": "Payload Too Large"},
-                )
-            raise exc
+        return await call_next(request)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -206,6 +174,14 @@ def create_app(
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Internal server error: {exc!s}"},
+        )
+
     app.state._agent_builder = agent_builder or default_agent_builder
     app.add_middleware(
         CORSMiddleware,
