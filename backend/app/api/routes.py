@@ -103,15 +103,25 @@ def chat(req: ChatRequest, request: Request) -> ChatResponse:
     Returns:
         A ChatResponse containing the agent's reply and any tool events.
     """
-    agent = request.app.state.agent
-    result = agent.run(message=req.message, role=req.role, history=req.history, language=req.language)
-    return ChatResponse(
-        reply=result.reply,
-        role=req.role,
-        language=req.language,
-        tool_events=result.tool_events,
-        snapshot_summary=result.snapshot_summary,
-    )
+    try:
+        agent = request.app.state.agent
+        result = agent.run(message=req.message, role=req.role, history=req.history, language=req.language)
+        return ChatResponse(
+            reply=result.reply,
+            role=req.role,
+            language=req.language,
+            tool_events=result.tool_events,
+            snapshot_summary=result.snapshot_summary,
+        )
+    except Exception as exc:
+        sim = request.app.state.simulator
+        return ChatResponse(
+            reply=f"Service Notice: {exc!s}",
+            role=req.role,
+            language=req.language,
+            tool_events=[],
+            snapshot_summary=sim.snapshot().summary(),
+        )
 
 
 class DispatchRequest(BaseModel):
