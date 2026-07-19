@@ -1,26 +1,44 @@
 .role-switcher {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  backdrop-filter: blur(8px);
 }
 
 .role-btn {
-  padding: 0.5rem 0.9rem;
-  border: 1px solid #506ea2;
-  background: #0f1b30;
-  color: #c7d6ee;
-  border-radius: 999px;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.15s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.role-btn:hover {
-  border-color: #93c5fd;
+.role-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
 }
 
 .role-btn.active {
-  background: #1d4ed8;
-  color: #fff;
-  border-color: #93c5fd;
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.1);
+}
+
+.role-btn-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px currentColor;
 }
