@@ -7,10 +7,10 @@
 services:
   - type: web
     name: smart-stadiums-backend
-    env: docker
+    runtime: docker
     plan: free
-    rootDir: backend
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     healthCheckPath: /health
     autoDeploy: true
     envVars:
