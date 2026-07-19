@@ -75,7 +75,7 @@ export default function App() {
 
       <main className={`app-main ${role === "fan" ? "fan-mode" : "ops-mode"}`}>
         <div className="app-chat">
-          <ChatPanel role={role} language={language} />
+          <ChatPanel key={role} role={role} language={language} />
         </div>
         {role !== "fan" && (
           <div className="app-dashboard">

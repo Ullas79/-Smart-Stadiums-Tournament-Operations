@@ -126,10 +126,15 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
         setMessages((m) => m.filter((msg) => msg.id !== pendingId));
         return;
       }
+      let errorMessage = `⚠️ Error: ${(e as Error).message}`;
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        errorMessage = "⚠️ The AI Assistant is receiving too many requests right now. Please wait a moment and try again.";
+      }
+      
       setMessages((m) =>
         m.map((msg) =>
           msg.id === pendingId
-            ? { role: "assistant", content: `⚠️ Error: ${(e as Error).message}` }
+            ? { role: "assistant", content: errorMessage }
             : msg
         )
       );
