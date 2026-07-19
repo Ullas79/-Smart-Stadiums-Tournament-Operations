@@ -30,6 +30,10 @@ export function sendChat(
 ): Promise<ChatResponse> {
   return jsonFetch("/chat", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${role}_secure_token_123`
+    },
     body: JSON.stringify({ message, role, history, language }),
     signal,
   });
@@ -38,8 +42,13 @@ export function sendChat(
 export function triggerScenario(
   scenario: string
 ): Promise<{ status: string; incident?: Incident | null }> {
+  // Scenario triggering requires organizer role
   return jsonFetch("/simulator/scenario", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer organizer_secure_token_123`
+    },
     body: JSON.stringify({ scenario }),
   });
 }

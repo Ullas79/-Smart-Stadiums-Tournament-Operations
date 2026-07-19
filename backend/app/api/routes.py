@@ -8,11 +8,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from pydantic import BaseModel
 
 from ..models.chat import ChatRequest, ChatResponse, RoleInfo, RolesResponse
 from ..models.roles import ROLE_DESCRIPTIONS, Role, allowed_tools
+from .auth import verify_role_token
 
 router = APIRouter()
 
@@ -23,12 +24,13 @@ class ScenarioRequest(BaseModel):
 
 
 @router.post("/simulator/scenario")
-def trigger_scenario_route(req: ScenarioRequest, request: Request) -> dict[str, Any]:
+def trigger_scenario_route(req: ScenarioRequest, request: Request, auth_role: str = Depends(verify_role_token)) -> dict[str, Any]:
     """Endpoint to trigger a simulated stadium scenario.
 
     Args:
         req: The scenario request containing the scenario name.
         request: The FastAPI request instance holding application state.
+        auth_role: The role extracted from the API token.
 
     Returns:
         A dictionary indicating success and details of the triggered incident.
@@ -36,6 +38,9 @@ def trigger_scenario_route(req: ScenarioRequest, request: Request) -> dict[str, 
     Raises:
         HTTPException: If the scenario name is invalid or simulation failed.
     """
+    if auth_role != "organizer":
+        raise HTTPException(status_code=403, detail="Only organizers can trigger scenarios")
+        
     sim = request.app.state.simulator
     valid_scenarios = {"gate_malfunction", "medical_emergency", "concession_surge", "reset"}
     if req.scenario not in valid_scenarios:
@@ -91,7 +96,7 @@ def get_state(request: Request) -> dict[str, Any]:
 
 
 @router.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest, request: Request) -> ChatResponse:
+def chat(req: ChatRequest, request: Request, auth_role: str = Depends(verify_role_token)) -> ChatResponse:
     """Handles an assistant chat request.
 
     Sends the user message to the agent loop and returns the agent response.
@@ -99,10 +104,14 @@ def chat(req: ChatRequest, request: Request) -> ChatResponse:
     Args:
         req: The ChatRequest containing message, role, and history.
         request: The FastAPI request instance holding application state.
+        auth_role: The role extracted from the API token.
 
     Returns:
         A ChatResponse containing the agent's reply and any tool events.
     """
+    if req.role != auth_role:
+        raise HTTPException(status_code=403, detail=f"Cannot execute actions as {req.role.value} with {auth_role} token")
+        
     try:
         agent = request.app.state.agent
         result = agent.run(message=req.message, role=req.role, history=req.history, language=req.language)
