@@ -20,7 +20,7 @@ test("ignores concurrent submissions while a request is in flight", async () => 
 
   render(<ChatPanel role="fan" language="en" />);
 
-  const input = screen.getByPlaceholderText("Ask as fan…") as HTMLInputElement;
+  const input = screen.getByPlaceholderText("Ask as Fan…") as HTMLInputElement;
   const sendButton = screen.getByText("Send");
 
   // Type and click send the first time
@@ -75,7 +75,7 @@ test("aborts in-flight request on role change and does not show error", async ()
 
   const { rerender } = render(<ChatPanel role="fan" language="en" />);
 
-  const input = screen.getByPlaceholderText("Ask as fan…") as HTMLInputElement;
+  const input = screen.getByPlaceholderText("Ask as Fan…") as HTMLInputElement;
   const sendButton = screen.getByText("Send");
 
   fireEvent.change(input, { target: { value: "Cancel me" } });
@@ -120,7 +120,7 @@ test("aborts in-flight request on language change and does not show error", asyn
 
   const { rerender } = render(<ChatPanel role="fan" language="en" />);
 
-  const input = screen.getByPlaceholderText("Ask as fan…") as HTMLInputElement;
+  const input = screen.getByPlaceholderText("Ask as Fan…") as HTMLInputElement;
   const sendButton = screen.getByText("Send");
 
   fireEvent.change(input, { target: { value: "Cancel me on lang change" } });

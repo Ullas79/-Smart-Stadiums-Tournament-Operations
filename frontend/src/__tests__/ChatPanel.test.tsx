@@ -19,7 +19,7 @@ test("sends a chat request and displays the reply", async () => {
 
   render(<ChatPanel role="fan" language="en" />);
 
-  const input = screen.getByPlaceholderText("Ask as fan…") as HTMLInputElement;
+  const input = screen.getByPlaceholderText("Ask as Fan…") as HTMLInputElement;
   fireEvent.change(input, { target: { value: "How is the North Gate?" } });
   fireEvent.click(screen.getByText("Send"));
 
@@ -37,7 +37,7 @@ test("sends a chat request and displays the reply", async () => {
 test("shows error message on failure", async () => {
   mockedSendChat.mockRejectedValue(new Error("network down"));
   render(<ChatPanel role="volunteer" language="en" />);
-  fireEvent.change(screen.getByPlaceholderText("Ask as volunteer…"), {
+  fireEvent.change(screen.getByPlaceholderText("Ask as Volunteer…"), {
     target: { value: "hi" },
   });
   fireEvent.click(screen.getByText("Send"));

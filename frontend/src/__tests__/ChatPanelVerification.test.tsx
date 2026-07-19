@@ -20,8 +20,8 @@ test("prevents concurrent double-submission using busyRef", async () => {
 
   render(<ChatPanel role="fan" language="en" />);
 
-  const input = screen.getByPlaceholderText("Ask as fan…") as HTMLInputElement;
-  const form = screen.getByPlaceholderText("Ask as fan…").closest("form")!;
+  const input = screen.getByPlaceholderText("Ask as Fan…") as HTMLInputElement;
+  const form = screen.getByPlaceholderText("Ask as Fan…").closest("form")!;
 
   // First submission
   fireEvent.change(input, { target: { value: "Hello first" } });
@@ -64,8 +64,8 @@ test("cancels request when role changes", async () => {
 
   const { rerender } = render(<ChatPanel role="fan" language="en" />);
 
-  const input = screen.getByPlaceholderText("Ask as fan…") as HTMLInputElement;
-  const form = screen.getByPlaceholderText("Ask as fan…").closest("form")!;
+  const input = screen.getByPlaceholderText("Ask as Fan…") as HTMLInputElement;
+  const form = screen.getByPlaceholderText("Ask as Fan…").closest("form")!;
 
   fireEvent.change(input, { target: { value: "Hello fan" } });
   fireEvent.submit(form);
