@@ -102,10 +102,20 @@ body::before {
 
 .app-main {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
   gap: 1.5rem;
   flex: 1;
   min-height: 0;
+}
+
+.app-main.ops-mode {
+  grid-template-columns: 1.15fr 0.85fr;
+}
+
+.app-main.fan-mode {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .app-chat,

@@ -77,14 +77,16 @@ export default function App() {
         </select>
       </section>
 
-      <main className="app-main">
+      <main className={`app-main ${role === "fan" ? "fan-mode" : "ops-mode"}`}>
         <div className="app-chat">
           <ChatPanel role={role} language={language} />
         </div>
-        <div className="app-dashboard">
-          <ScenarioPanel />
-          <OpsDashboard snapshot={snapshot} />
-        </div>
+        {role !== "fan" && (
+          <div className="app-dashboard">
+            <ScenarioPanel />
+            <OpsDashboard snapshot={snapshot} />
+          </div>
+        )}
       </main>
     </div>
   );
