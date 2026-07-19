@@ -8,7 +8,16 @@ async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+    let detail = "";
+    try {
+      const errBody = await res.json();
+      if (errBody && errBody.detail) {
+        detail = typeof errBody.detail === "string" ? errBody.detail : JSON.stringify(errBody.detail);
+      }
+    } catch (e) {
+      // ignore
+    }
+    throw new Error(`Request failed: ${res.status}${detail ? ` - ${detail}` : ''}`);
   }
   return (await res.json()) as T;
 }
