@@ -1,16 +1,38 @@
 import { memo, useEffect, useRef, useState } from "react";
 import type { StadiumSnapshot } from "../types";
+import { toast } from "sonner";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 import "./OpsDashboard.css";
 
 interface Props {
   snapshot: StadiumSnapshot | null;
 }
 
-
-
 function phaseLabel(phase: string): string {
   return phase.replace(/_/g, " ");
 }
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div style={{ background: "rgba(15, 23, 42, 0.9)", border: "1px solid rgba(148,163,184,0.2)", padding: "0.5rem", borderRadius: "8px", color: "#f8fafc", fontSize: "0.85rem" }}>
+        <p style={{ margin: 0, fontWeight: "bold" }}>{data.zone_name}</p>
+        <p style={{ margin: "0.2rem 0 0", color: data.color }}>{data.densityPercent}% ({data.level_label})</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export const OpsDashboard = memo(
   function OpsDashboard({ snapshot }: Props) {
@@ -30,6 +52,7 @@ export const OpsDashboard = memo(
           const prevDensity = prevZone ? prevZone.density : 0;
           if (c.density > 0.85 && prevDensity <= 0.85) {
             alerts.push(`Alert: ${c.zone_name} crowd density is critically high at ${Math.round(c.density * 100)}%!`);
+            toast.error(`Critical Density: ${c.zone_name}`, { description: `Density reached ${Math.round(c.density * 100)}%` });
           }
         });
 
@@ -38,6 +61,11 @@ export const OpsDashboard = memo(
           const prevInc = prev.incidents.find((pi) => pi.incident_id === i.incident_id);
           if (!prevInc) {
             alerts.push(`New active incident: ${i.type.replace(/_/g, " ")} (${i.severity} severity) reported at ${i.location}.`);
+            if (i.severity === 'critical') {
+              toast.error(`Critical Incident: ${i.type.replace(/_/g, " ")}`, { description: i.location, duration: 8000 });
+            } else {
+              toast.warning(`New Incident: ${i.type.replace(/_/g, " ")}`, { description: i.location });
+            }
           }
         });
 
@@ -46,6 +74,7 @@ export const OpsDashboard = memo(
           const prevGate = prev.gates.find((pg) => pg.gate_id === g.gate_id);
           if (prevGate && prevGate.status !== g.status) {
             alerts.push(`Gate ${g.label} status changed to ${g.status}.`);
+            toast.info(`Gate Status Update`, { description: `Gate ${g.label} is now ${g.status}` });
           }
         });
 
@@ -66,6 +95,13 @@ export const OpsDashboard = memo(
 
     const { match, crowd, gates, incidents, transit } = snapshot;
 
+    // Prepare chart data
+    const chartData = crowd.map(c => ({
+      ...c,
+      densityPercent: Math.round(c.density * 100),
+      color: c.level_label === 'high' ? '#ef4444' : c.level_label === 'moderate' ? '#f59e0b' : '#10b981'
+    }));
+
     return (
       <section className="ops-dashboard" aria-label="Live operations dashboard">
         {/* Dynamic accessibility alerts for live state changes */}
@@ -81,26 +117,24 @@ export const OpsDashboard = memo(
         </header>
 
         <div className="dashboard-grid">
-          {/* Crowd Density Card */}
-          <section className="stat-card" aria-labelledby="crowd-density-heading">
-            <h3 id="crowd-density-heading" className="stat-title">Crowd Density</h3>
-            {crowd.map((c) => (
-              <div key={c.zone_id} className="density-meter" aria-label={`${c.zone_name} (${c.zone_id}) density`}>
-                <div className="density-label">
-                  <span>{c.zone_name}</span>
-                  <span>{Math.round(c.density * 100)}%</span>
-                </div>
-                <div 
-                  className={`density-bar-bg density-${c.level_label === 'high' ? 'critical' : c.level_label === 'moderate' ? 'warning' : 'safe'}`}
-                  role="progressbar"
-                  aria-valuenow={Math.round(c.density * 100)}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                >
-                  <div className="density-bar-fill" style={{ width: `${Math.round(c.density * 100)}%` }} />
-                </div>
-              </div>
-            ))}
+          {/* Crowd Density Chart */}
+          <section className="stat-card" aria-labelledby="crowd-density-heading" style={{ gridColumn: "1 / -1", height: "250px" }}>
+            <h3 id="crowd-density-heading" className="stat-title">Crowd Density Matrix</h3>
+            <div style={{ flex: 1, minHeight: 0, marginTop: "1rem" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                  <XAxis dataKey="zone_id" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+                  <Bar dataKey="densityPercent" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </section>
 
           {/* Gates Card */}

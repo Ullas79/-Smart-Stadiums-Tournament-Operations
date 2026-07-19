@@ -177,7 +177,11 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
             <div className="chat-msg-role">{m.role === "user" ? "You" : "Assistant"}</div>
             <div className="chat-msg-content">
               {m.pending ? (
-                <span aria-label="Assistant is typing...">…</span>
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               ) : (
                 m.content
               )}

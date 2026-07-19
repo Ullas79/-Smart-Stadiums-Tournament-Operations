@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Toaster } from "sonner";
 import { RoleSwitcher } from "./components/RoleSwitcher";
 import { ChatPanel } from "./components/ChatPanel";
 import { OpsDashboard } from "./components/OpsDashboard";
@@ -54,6 +55,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <Toaster theme="dark" position="top-right" />
       <header className="app-header">
         <h1><span aria-hidden="true">🏟️</span> Smart Stadiums Assistant</h1>
         <p className="subtitle">FIFA World Cup 2026 Final · MetLife Stadium</p>
