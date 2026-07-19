@@ -145,12 +145,20 @@ class Agent:
 
         events: list[ToolEvent] = []
         for _ in range(max_iters):
-            response = self.client.generate(
-                system_instruction=system_instruction,
-                contents=contents,
-                tool_declarations=tool_declarations,
-                model=settings.gemini_model,
-            )
+            try:
+                response = self.client.generate(
+                    system_instruction=system_instruction,
+                    contents=contents,
+                    tool_declarations=tool_declarations,
+                    model=settings.gemini_model,
+                )
+            except Exception as exc:
+                logger.exception("Gemini API call failed: %s", exc)
+                return AgentResult(
+                    reply=f"I encountered an API error: {exc!s}. Here is the live stadium snapshot: {snapshot.summary()}",
+                    tool_events=events,
+                    snapshot_summary=snapshot.summary(),
+                )
             if not response.function_calls:
                 return AgentResult(
                     reply=response.text or "",

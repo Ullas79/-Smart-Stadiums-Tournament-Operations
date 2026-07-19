@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     google_cloud_location: str = "us-central1"
 
     # Agent
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-2.0-flash"
     agent_max_tool_iterations: int = 6
     agent_max_message_chars: int = 2000
 
