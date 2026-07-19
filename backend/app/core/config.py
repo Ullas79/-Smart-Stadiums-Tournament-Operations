@@ -27,7 +27,11 @@ class Settings(BaseSettings):
     google_cloud_location: str = "us-central1"
 
     # Agent
+    llm_provider: str = "ollama"  # "gemini" or "ollama"
     gemini_model: str = "gemini-2.0-flash"
+    ollama_base_url: str = "http://localhost:11434/v1"
+    ollama_api_key: str = "ollama"
+    ollama_model: str = "llama3.1"
     agent_max_tool_iterations: int = 6
     agent_max_message_chars: int = 2000
 

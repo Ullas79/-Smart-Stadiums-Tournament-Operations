@@ -98,7 +98,7 @@ def test_chat_invalid_role_rejected():
     app = _app_with_fake_agent()
     with TestClient(app) as client:
         r = client.post("/chat", json={"role": "admin", "message": "hi"})
-        assert r.status_code == 422
+        assert r.status_code == 403
 
 
 def test_dispatch_and_resolve_api():

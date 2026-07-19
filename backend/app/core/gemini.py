@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ..agent.loop import AgentResponse, Contents, FunctionCall, GeminiClientProtocol
+from ..agent.loop import AgentResponse, Contents, FunctionCall, LLMClientProtocol
 from ..core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ def _from_sdk_response(resp: Any) -> AgentResponse:
     return AgentResponse(text="\n".join(text_parts) if text_parts else None, function_calls=calls)
 
 
-class RealGeminiClient(GeminiClientProtocol):
+class RealGeminiClient(LLMClientProtocol):
     """Active Gemini client that communicates with the Google GenAI API."""
 
     def __init__(self, client: Any) -> None:
@@ -137,9 +137,24 @@ class RealGeminiClient(GeminiClientProtocol):
         """
         from google.genai import types
 
+        # Convert generic OpenAI-style dicts back to Google types.FunctionDeclaration
+        genai_tools = []
+        for d in tool_declarations:
+            if isinstance(d, dict) and "function" in d:
+                f = d["function"]
+                genai_tools.append(
+                    types.FunctionDeclaration(
+                        name=f["name"],
+                        description=f.get("description", ""),
+                        parameters=f.get("parameters", {}),
+                    )
+                )
+            else:
+                genai_tools.append(d)
+
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
-            tools=[types.Tool(function_declarations=tool_declarations)] if tool_declarations else [],
+            tools=[types.Tool(function_declarations=genai_tools)] if genai_tools else [],
             temperature=0.3,
         )
         resp = self._client.models.generate_content(
@@ -150,7 +165,7 @@ class RealGeminiClient(GeminiClientProtocol):
         return _from_sdk_response(resp)
 
 
-class OfflineClient(GeminiClientProtocol):
+class OfflineClient(LLMClientProtocol):
     """Used when no Gemini key is configured (tests / offline demo).
 
     Returns a deterministic answer and never calls tools, so the loop terminates
@@ -184,11 +199,11 @@ class OfflineClient(GeminiClientProtocol):
         )
 
 
-def make_client() -> GeminiClientProtocol:
+def make_client() -> LLMClientProtocol:
     """Creates and returns either a RealGeminiClient or OfflineClient based on configuration.
 
     Returns:
-        An instance of GeminiClientProtocol.
+        An instance of LLMClientProtocol.
     """
     client = _build_genai_client()
     if client is None:

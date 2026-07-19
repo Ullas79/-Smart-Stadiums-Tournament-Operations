@@ -208,27 +208,28 @@ class ToolRegistry:
             "mitigate_bottleneck": handlers.mitigate_bottleneck,
         }
 
-    # ---- declarations for Gemini ----
-    def declarations_for_role(self, role: Role) -> list[Any]:
-        """Return `types.FunctionDeclaration` objects for the tools a role may use.
+    # ---- declarations for Gemini/LLM ----
+    def declarations_for_role(self, role: Role) -> list[dict[str, Any]]:
+        """Return generic OpenAI-compatible function declarations for the tools a role may use.
 
         Args:
             role: The role to query tool declarations for.
 
         Returns:
-            A list of Google GenAI SDK FunctionDeclaration objects.
+            A list of dictionary objects representing the tool declarations.
         """
-        from google.genai import types
-
         names = allowed_tools(role)
         decls = []
         for name in names:
             decls.append(
-                types.FunctionDeclaration(
-                    name=name,
-                    description=_DESCRIPTIONS[name],
-                    parameters=_SCHEMAS[name],
-                )
+                {
+                    "type": "function",
+                    "function": {
+                        "name": name,
+                        "description": _DESCRIPTIONS[name],
+                        "parameters": _SCHEMAS[name],
+                    }
+                }
             )
         return decls
 

@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .agent.loop import Agent
 from .api.routes import router
 from .core.config import settings
-from .core.gemini import make_client
+from .core.llm import make_llm_client
 from .knowledge.store import KnowledgeStore
 from .models.stadium import StadiumModel
 from .simulator import fixtures
@@ -38,7 +38,7 @@ def default_agent_builder(
         An initialized Agent instance configured with the tools and context.
     """
     ctx = ToolContext(simulator=sim, model=model, knowledge=knowledge)
-    return Agent(client=make_client(), registry=default_registry, ctx=ctx)
+    return Agent(client=make_llm_client(), registry=default_registry, ctx=ctx)
 
 
 @asynccontextmanager

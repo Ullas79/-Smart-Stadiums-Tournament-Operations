@@ -53,12 +53,17 @@ def test_unknown_tool_returns_error(registry, ctx):
 def test_declarations_for_role_subset(registry):
     fan_decls = registry.declarations_for_role(Role.FAN)
     org_decls = registry.declarations_for_role(Role.ORGANIZER)
-    fan_names = {d.name for d in fan_decls}
-    org_names = {d.name for d in org_decls}
+    
+    # Extract names from generic OpenAI tool dicts
+    fan_names = {d["function"]["name"] for d in fan_decls}
+    org_names = {d["function"]["name"] for d in org_decls}
+    
+    # Organizer should have more tools than Fan
     assert "recommend_action" not in fan_names
     assert "recommend_action" in org_names
     assert "report_incident" not in fan_names
     assert "report_incident" in org_names
+    assert fan_names.issubset(org_names)
 
 
 # ---- handlers -----------------------------------------------------------

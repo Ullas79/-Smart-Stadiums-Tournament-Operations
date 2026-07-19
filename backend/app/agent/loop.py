@@ -55,8 +55,8 @@ class AgentResponse:
 Contents = list[dict[str, Any]]
 
 
-class GeminiClientProtocol:
-    """Protocol for the Gemini API client interface."""
+class LLMClientProtocol:
+    """Protocol for the LLM API client interface."""
 
     def generate(
         self,
@@ -65,7 +65,7 @@ class GeminiClientProtocol:
         tool_declarations: list[Any],
         model: str,
     ) -> AgentResponse:  # pragma: no cover - interface only
-        """Generates a response from the Gemini model.
+        """Generates a response from the LLM.
 
         Args:
             system_instruction: The instruction governing the model's behavior.
@@ -93,14 +93,14 @@ class Agent:
 
     def __init__(
         self,
-        client: GeminiClientProtocol,
+        client: LLMClientProtocol,
         registry: ToolRegistry,
         ctx: ToolContext,
     ) -> None:
         """Initializes the Agent.
 
         Args:
-            client: The Gemini API client protocol.
+            client: The LLM API client protocol.
             registry: The tool registry to lookup and execute tools.
             ctx: The tool execution context.
         """

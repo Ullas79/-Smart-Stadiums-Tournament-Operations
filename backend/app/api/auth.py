@@ -1,3 +1,4 @@
+import os
 from fastapi import Header, HTTPException
 from ..models.roles import ROLE_DESCRIPTIONS
 

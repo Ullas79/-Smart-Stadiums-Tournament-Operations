@@ -16,7 +16,7 @@ async def test_security_missing_token():
         "role": "fan",
         "history": [],
         "language": "en"
-    })
+    }, headers={"Authorization": ""})
     assert response.status_code == 401
     assert "Missing authorization token" in response.json()["detail"]
 
