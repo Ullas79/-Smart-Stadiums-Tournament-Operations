@@ -165,7 +165,6 @@ def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
 _SCHEMAS: dict[str, dict[str, Any]] = {
     name: _clean_schema(model.model_json_schema())
     for name, model in _SCHEMAS_PYDANTIC.items()
-},
 }
 
 _DESCRIPTIONS: dict[str, str] = {

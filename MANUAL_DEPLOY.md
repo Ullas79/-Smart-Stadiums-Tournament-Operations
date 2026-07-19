@@ -98,9 +98,20 @@ The backend only allows origins listed in `BACKEND_CORS_ORIGINS`.
 
 ## 5. Notes & gotchas
 
-- **Cold starts:** Render free tier sleeps after inactivity; the first request
-  after sleep takes ~30–60s to wake. For a judging demo, keep it warm by
-  pinging `/health` periodically, or upgrade Render to a paid instance.
+- **Cold starts (Render free tier):** Free web services **spin down after
+  15 minutes of inactivity**. The next request triggers a **30–60 second**
+  cold start while the Docker container rebuilds and the simulator
+  re-initializes from `sim_time = -600`. To keep the service warm:
+  1. **Recommended — [UptimeRobot](https://uptimerobot.com/)** (free account):
+     create an HTTP(s) monitor targeting
+     `https://<your-backend>.onrender.com/health` with a **14-minute interval**.
+     This pings the backend before Render's 15-minute idle timeout, keeping the
+     container alive 24/7 within the 750 free instance-hours/month quota.
+  2. **Quick alternative:** manually open `/health` in a browser tab a few
+     minutes before your demo session to pre-warm the service.
+- **Free tier resource limits:** 512 MB RAM, 0.1 vCPU (shared), 100 GB
+  outbound bandwidth/month. This application fits comfortably — the in-memory
+  simulator + knowledge store use < 10 MB and there is no database dependency.
 - **Vercel function timeout:** not relevant — the backend on Render has no
   10s limit. A `/chat` call may take a few seconds (Gemini + tool loop); that's
   fine on Render.

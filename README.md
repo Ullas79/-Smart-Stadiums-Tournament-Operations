@@ -95,6 +95,24 @@ Quick summary:
 3. Verify: `https://<your-backend>.onrender.com/health` → `{"status":"ok"}`,
    then open the Vercel URL.
 
+> **⚠️ Render Free Tier — Cold Start Notice**
+>
+> Render's free web services **spin down after 15 minutes of inactivity**.
+> The first request after spin-down triggers a cold start that takes
+> **30–60 seconds** while the container rebuilds and the simulator
+> re-initializes. To avoid this during a live demo or judging session:
+>
+> 1. **Use [UptimeRobot](https://uptimerobot.com/)** (free) — set up an
+>    HTTP monitor to ping `https://<your-backend>.onrender.com/health`
+>    every **14 minutes**. This keeps the container alive 24/7 within
+>    Render's 750 free instance-hours/month.
+> 2. **Or manually ping** the `/health` endpoint a few minutes before
+>    your demo to pre-warm the service.
+>
+> Free tier limits: **512 MB RAM**, **0.1 vCPU** (shared), **100 GB
+> bandwidth/month**. This application is well within all limits — the
+> in-memory simulator uses < 10 MB and there is no database dependency.
+
 ---
 
 ## Testing
