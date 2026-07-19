@@ -62,8 +62,8 @@ export const OpsDashboard = memo(
 
     if (!snapshot) {
       return (
-        <div className="dashboard" role="status" aria-live="polite">
-          Loading live state…
+        <div className="ops-dashboard" role="status" aria-live="polite">
+          <div className="live-indicator">Loading live state…</div>
         </div>
       );
     }
@@ -71,97 +71,92 @@ export const OpsDashboard = memo(
     const { match, crowd, gates, incidents, transit } = snapshot;
 
     return (
-      <section className="dashboard" aria-label="Live operations dashboard">
+      <section className="ops-dashboard" aria-label="Live operations dashboard">
         {/* Dynamic accessibility alerts for live state changes */}
         <div className="sr-only" aria-live="polite" role="status" aria-atomic="true">
           {liveAnnouncement}
         </div>
 
-        <header className="dashboard-head">
+        <header className="dashboard-header">
           <h2>{snapshot.venue_name}</h2>
-          <div className="phase-badge" aria-label={`Match Phase: ${phaseLabel(match.phase)}`}>
+          <div className="live-indicator" aria-label={`Match Phase: ${phaseLabel(match.phase)}`}>
             Phase: {phaseLabel(match.phase)}
           </div>
         </header>
 
         <div className="dashboard-grid">
-          <section className="panel" aria-labelledby="crowd-density-heading">
-            <h3 id="crowd-density-heading">Crowd density</h3>
-            <div className="zone-grid" role="group" aria-label="Crowd density by zone">
-              {crowd.map((c) => (
-                <div
-                  key={c.zone_id}
-                  className="zone-cell"
+          {/* Crowd Density Card */}
+          <section className="stat-card" aria-labelledby="crowd-density-heading">
+            <h3 id="crowd-density-heading" className="stat-title">Crowd Density</h3>
+            {crowd.map((c) => (
+              <div key={c.zone_id} className="density-meter" aria-label={`${c.zone_name} (${c.zone_id}) density`}>
+                <div className="density-label">
+                  <span>{c.zone_name}</span>
+                  <span>{Math.round(c.density * 100)}%</span>
+                </div>
+                <div 
+                  className={`density-bar-bg density-${c.level_label === 'high' ? 'critical' : c.level_label === 'moderate' ? 'warning' : 'safe'}`}
                   role="progressbar"
                   aria-valuenow={Math.round(c.density * 100)}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={`${c.zone_name} (${c.zone_id}) density`}
-                  aria-valuetext={`${Math.round(c.density * 100)}% density, congestion level: ${c.level_label}`}
-                  tabIndex={0}
-                  title={`${c.zone_name}: ${Math.round(c.density * 100)}% (${c.level_label})`}
                 >
-                  <div
-                    className="zone-bar"
-                    style={{
-                      height: `${Math.round(c.density * 100)}%`,
-                      background: densityColor(c.level_label),
-                    }}
-                  />
-                  <span className="zone-label" aria-hidden="true">
-                    {c.zone_id}
-                  </span>
+                  <div className="density-bar-fill" style={{ width: `${Math.round(c.density * 100)}%` }} />
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </section>
 
-          <section className="panel" aria-labelledby="gates-heading">
-            <h3 id="gates-heading">Gates</h3>
-            <ul className="gate-list">
-              {gates.map((g) => (
-                <li key={g.gate_id}>
-                  <span className="gate-label">{g.label}</span>
-                  <span className={`gate-status ${g.status}`} aria-label={`Status: ${g.status}`}>
-                    {g.status}
-                  </span>
-                  <span className="gate-queue">{g.queue_minutes.toFixed(1)} min queue</span>
-                </li>
-              ))}
-            </ul>
+          {/* Gates Card */}
+          <section className="stat-card" aria-labelledby="gates-heading">
+            <h3 id="gates-heading" className="stat-title">Gates & Queues</h3>
+            {gates.map((g) => (
+              <div key={g.gate_id} className="density-meter">
+                <div className="density-label">
+                  <span>{g.label} ({g.status})</span>
+                  <span>{g.queue_minutes.toFixed(1)}m</span>
+                </div>
+                <div className={`density-bar-bg density-${g.queue_minutes > 15 ? 'critical' : g.queue_minutes > 5 ? 'warning' : 'safe'}`}>
+                  <div className="density-bar-fill" style={{ width: `${Math.min((g.queue_minutes / 30) * 100, 100)}%` }} />
+                </div>
+              </div>
+            ))}
           </section>
 
-          <section className="panel" aria-labelledby="incidents-heading">
-            <h3 id="incidents-heading">Active incidents ({incidents.length})</h3>
+          {/* Incidents Card */}
+          <section className="stat-card" aria-labelledby="incidents-heading">
+            <h3 id="incidents-heading" className="stat-title">Active Incidents ({incidents.length})</h3>
             {incidents.length === 0 ? (
-              <p className="muted">No active incidents.</p>
+              <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No active incidents.</div>
             ) : (
-              <ul className="incident-list">
+              <div className="incidents-list">
                 {incidents.map((i) => (
-                  <li key={i.incident_id} className={`sev-${i.severity}`}>
-                    <strong>{i.type.replace(/_/g, " ")}</strong> — {i.location}
-                    <span className={`sev-tag ${i.severity}`} aria-label={`Severity: ${i.severity}`}>
-                      {i.severity}
-                    </span>
-                  </li>
+                  <div key={i.incident_id} className="incident-item">
+                    <div className="incident-header">
+                      <span className="incident-type">{i.type.replace(/_/g, " ")}</span>
+                      <span className="incident-severity">{i.severity}</span>
+                    </div>
+                    <span className="incident-location">{i.location}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </section>
 
-          <section className="panel" aria-labelledby="transit-heading">
-            <h3 id="transit-heading">Transit</h3>
-            <ul className="transit-list">
-              {transit.map((t) => (
-                <li key={t.node_id}>
-                  <span className="transit-name">{t.name}</span>
-                  <span className={`congestion ${t.congestion}`} aria-label={`Congestion: ${t.congestion}`}>
-                    {t.congestion}
-                  </span>
-                  <span className="transit-wait">{t.wait_minutes.toFixed(0)} min</span>
-                </li>
-              ))}
-            </ul>
+          {/* Transit Card */}
+          <section className="stat-card" aria-labelledby="transit-heading">
+            <h3 id="transit-heading" className="stat-title">Transit Wait Times</h3>
+            {transit.map((t) => (
+              <div key={t.node_id} className="density-meter">
+                <div className="density-label">
+                  <span>{t.name} ({t.congestion})</span>
+                  <span>{t.wait_minutes.toFixed(0)}m</span>
+                </div>
+                <div className={`density-bar-bg density-${t.congestion === 'heavy' ? 'critical' : t.congestion === 'moderate' ? 'warning' : 'safe'}`}>
+                  <div className="density-bar-fill" style={{ width: `${Math.min((t.wait_minutes / 60) * 100, 100)}%` }} />
+                </div>
+              </div>
+            ))}
           </section>
         </div>
       </section>
