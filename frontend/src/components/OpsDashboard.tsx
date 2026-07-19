@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import type { StadiumSnapshot } from "../types";
+import type { StadiumSnapshot, Role } from "../types";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,6 +16,7 @@ import "./OpsDashboard.css";
 
 interface Props {
   snapshot: StadiumSnapshot | null;
+  role: Role;
 }
 
 function phaseLabel(phase: string): string {
@@ -35,8 +36,12 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+const triggerChat = (text: string) => {
+  window.dispatchEvent(new CustomEvent("send-chat", { detail: text }));
+};
+
 export const OpsDashboard = memo(
-  function OpsDashboard({ snapshot }: Props) {
+  function OpsDashboard({ snapshot, role }: Props) {
     const { t } = useTranslation();
     const prevSnapshotRef = useRef<StadiumSnapshot | null>(null);
     const [liveAnnouncement, setLiveAnnouncement] = useState("");
@@ -94,6 +99,22 @@ export const OpsDashboard = memo(
       color: c.level_label === 'high' ? '#ef4444' : c.level_label === 'moderate' ? '#f59e0b' : '#10b981'
     }));
 
+    // Calculate Executive Summary (Organizer only)
+    const totalOccupancy = crowd.reduce((sum, c) => sum + c.occupancy, 0);
+    const totalCapacity = crowd.reduce((sum, c) => sum + c.capacity, 0);
+    const overallDensity = totalCapacity > 0 ? (totalOccupancy / totalCapacity) * 100 : 0;
+    
+    // Quick Actions based on role
+    const quickActions = role === "volunteer" ? [
+      { label: "Report Medical Issue", prompt: "I need to report a medical incident in my sector." },
+      { label: "Report Spillage", prompt: "There is a spillage blocking a walkway." },
+      { label: "Request Gate Backup", prompt: "My gate is getting overcrowded, we need backup." }
+    ] : role === "staff" ? [
+      { label: "Dispatch Medical", prompt: "Dispatch medical personnel to the active incidents." },
+      { label: "Close High-Queue Gate", prompt: "Close the gate with the highest wait time." },
+      { label: "Check Transit Nodes", prompt: "What is the status of the transit nodes?" }
+    ] : [];
+
     return (
       <section className="ops-dashboard" aria-label="Live operations dashboard">
         <div className="sr-only" aria-live="polite" role="status" aria-atomic="true">
@@ -108,24 +129,43 @@ export const OpsDashboard = memo(
         </header>
 
         <div className="dashboard-grid">
-          <section className="stat-card" aria-labelledby="crowd-density-heading" style={{ gridColumn: "1 / -1", height: "250px" }}>
-            <h3 id="crowd-density-heading" className="stat-title">{t('crowdDensity')}</h3>
-            <div style={{ flex: 1, minHeight: 0, marginTop: "1rem" }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                  <XAxis dataKey="zone_id" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-                  <Bar dataKey="densityPercent" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
+          {role === "organizer" && (
+            <section className="stat-card exec-summary" style={{ gridColumn: "1 / -1" }}>
+              <div className="exec-stat">
+                <span className="exec-label">Global Occupancy</span>
+                <span className="exec-value">{overallDensity.toFixed(1)}%</span>
+              </div>
+              <div className="exec-stat">
+                <span className="exec-label">Total Attendance</span>
+                <span className="exec-value">{totalOccupancy.toLocaleString()}</span>
+              </div>
+              <div className="exec-stat">
+                <span className="exec-label">Active Incidents</span>
+                <span className={`exec-value ${incidents.length > 2 ? 'text-red' : ''}`}>{incidents.length}</span>
+              </div>
+            </section>
+          )}
+
+          {role === "organizer" && (
+            <section className="stat-card" aria-labelledby="crowd-density-heading" style={{ gridColumn: "1 / -1", height: "250px" }}>
+              <h3 id="crowd-density-heading" className="stat-title">{t('crowdDensity')}</h3>
+              <div style={{ flex: 1, minHeight: 0, marginTop: "1rem" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                    <XAxis dataKey="zone_id" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+                    <Bar dataKey="densityPercent" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          )}
 
           <section className="stat-card" aria-labelledby="gates-heading">
             <h3 id="gates-heading" className="stat-title">{t('gates')}</h3>
@@ -161,20 +201,35 @@ export const OpsDashboard = memo(
             )}
           </section>
 
-          <section className="stat-card" aria-labelledby="transit-heading">
-            <h3 id="transit-heading" className="stat-title">{t('transit')}</h3>
-            {transit.map((tItem) => (
-              <div key={tItem.node_id} className="density-meter">
-                <div className="density-label">
-                  <span>{tItem.name} ({tItem.congestion})</span>
-                  <span>{tItem.wait_minutes.toFixed(0)}m</span>
+          {(role === "organizer" || role === "staff") && (
+            <section className="stat-card" aria-labelledby="transit-heading">
+              <h3 id="transit-heading" className="stat-title">{t('transit')}</h3>
+              {transit.map((tItem) => (
+                <div key={tItem.node_id} className="density-meter">
+                  <div className="density-label">
+                    <span>{tItem.name} ({tItem.congestion})</span>
+                    <span>{tItem.wait_minutes.toFixed(0)}m</span>
+                  </div>
+                  <div className={`density-bar-bg density-${tItem.congestion === 'heavy' ? 'critical' : tItem.congestion === 'moderate' ? 'warning' : 'safe'}`}>
+                    <div className="density-bar-fill" style={{ width: `${Math.min((tItem.wait_minutes / 60) * 100, 100)}%` }} />
+                  </div>
                 </div>
-                <div className={`density-bar-bg density-${tItem.congestion === 'heavy' ? 'critical' : tItem.congestion === 'moderate' ? 'warning' : 'safe'}`}>
-                  <div className="density-bar-fill" style={{ width: `${Math.min((tItem.wait_minutes / 60) * 100, 100)}%` }} />
-                </div>
+              ))}
+            </section>
+          )}
+
+          {(role === "volunteer" || role === "staff") && (
+            <section className="stat-card" aria-labelledby="quick-actions-heading" style={{ gridColumn: role === "volunteer" ? "1 / -1" : "auto" }}>
+              <h3 id="quick-actions-heading" className="stat-title">Quick Actions</h3>
+              <div className="quick-actions-grid">
+                {quickActions.map((action, i) => (
+                  <button key={i} className="quick-action-btn" onClick={() => triggerChat(action.prompt)}>
+                    {action.label}
+                  </button>
+                ))}
               </div>
-            ))}
-          </section>
+            </section>
+          )}
         </div>
       </section>
     );

@@ -142,6 +142,17 @@ export const ChatPanel = memo(function ChatPanel({ role, language }: Props) {
     }
   }, [role, language]);
 
+  // Global listener for cross-component chat triggering
+  useEffect(() => {
+    const handleEvent = (e: CustomEvent<string>) => {
+      submit(e.detail).catch((err) => {
+        console.error("Failed to submit custom event chat:", err);
+      });
+    };
+    window.addEventListener('send-chat', handleEvent as EventListener);
+    return () => window.removeEventListener('send-chat', handleEvent as EventListener);
+  }, [submit]);
+
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     submit(input).catch((err) => {

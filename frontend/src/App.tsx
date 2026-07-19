@@ -79,8 +79,8 @@ export default function App() {
         </div>
         {role !== "fan" && (
           <div className="app-dashboard">
-            <ScenarioPanel />
-            <OpsDashboard snapshot={snapshot} />
+            {role === "organizer" && <ScenarioPanel />}
+            <OpsDashboard snapshot={snapshot} role={role} />
           </div>
         )}
       </main>
