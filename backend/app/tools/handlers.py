@@ -432,6 +432,65 @@ def _waypoint_to_zone_id(waypoint_id: str, model: StadiumModel) -> str | None:
     return None
 
 
+def _calc_zone_density_penalty(snap: StadiumSnapshot, from_zone: str | None, to_zone: str | None) -> float:
+    penalty = 0.0
+    for zid in {from_zone, to_zone}:
+        if zid:
+            cd = snap.crowd_by_zone(zid)
+            if cd:
+                if cd.density >= 0.85:
+                    penalty += 1500.0
+                elif cd.density >= 0.50:
+                    penalty += 300.0
+    return penalty
+
+def _calc_gate_status_penalty(e: Any, ctx: ToolContext, snap: StadiumSnapshot) -> float:
+    penalty = 0.0
+    for gate in ctx.model.gates:
+        gate_wp = f"WP-{gate.gate_id}"
+        if e.from_id == gate_wp or e.to_id == gate_wp or e.from_id == gate.gate_id or e.to_id == gate.gate_id:
+            gs = snap.gate_by_id(gate.gate_id)
+            if gs:
+                if gs.status == "restricted":
+                    penalty += 1500.0
+                elif gs.status == "closed":
+                    penalty += 99999.0
+    return penalty
+
+def _is_affected_by_incident(incident: Any, e: Any, from_zone: str | None, to_zone: str | None) -> bool:
+    if incident.location in (e.from_id, e.to_id):
+        return True
+    if incident.zone_id and incident.zone_id in (from_zone, to_zone):
+        return True
+    if incident.location and incident.location in (from_zone, to_zone):
+        return True
+    if incident.zone_id and (incident.zone_id in (e.from_id, e.to_id) or f"WP-{incident.zone_id}" in (e.from_id, e.to_id)):
+        return True
+    return False
+
+def _calc_incident_penalty(e: Any, snap: StadiumSnapshot, from_zone: str | None, to_zone: str | None) -> float:
+    penalty = 0.0
+    for incident in snap.incidents:
+        if incident.status == "active" and _is_affected_by_incident(incident, e, from_zone, to_zone):
+            if incident.severity == "low":
+                penalty += 500.0
+            elif incident.severity == "medium":
+                penalty += 1500.0
+            elif incident.severity == "high":
+                penalty += 5000.0
+    return penalty
+
+def _calculate_edge_penalty(e: Any, ctx: ToolContext, snap: StadiumSnapshot) -> float:
+    penalty = 0.0
+    from_zone = _waypoint_to_zone_id(e.from_id, ctx.model)
+    to_zone = _waypoint_to_zone_id(e.to_id, ctx.model)
+    
+    penalty += _calc_zone_density_penalty(snap, from_zone, to_zone)
+    penalty += _calc_gate_status_penalty(e, ctx, snap)
+    penalty += _calc_incident_penalty(e, snap, from_zone, to_zone)
+    
+    return penalty
+
 def _build_graph(ctx: ToolContext, accessible_only: bool, snap: StadiumSnapshot) -> dict[str, list[tuple[str, float]]]:
     """Adjacency list representation of the stadium waypoint graph with dynamic weights.
 
@@ -457,53 +516,7 @@ def _build_graph(ctx: ToolContext, accessible_only: bool, snap: StadiumSnapshot)
                 cost += 20000.0
 
         # Telemetry penalties
-        penalty = 0.0
-
-        # Zone density penalty
-        from_zone = _waypoint_to_zone_id(e.from_id, ctx.model)
-        to_zone = _waypoint_to_zone_id(e.to_id, ctx.model)
-        for zid in {from_zone, to_zone}:
-            if zid:
-                cd = snap.crowd_by_zone(zid)
-                if cd:
-                    if cd.density >= 0.85:
-                        penalty += 1500.0
-                    elif cd.density >= 0.50:
-                        penalty += 300.0
-
-        # Gate status penalty
-        for gate in ctx.model.gates:
-            gate_wp = f"WP-{gate.gate_id}"
-            if e.from_id == gate_wp or e.to_id == gate_wp or e.from_id == gate.gate_id or e.to_id == gate.gate_id:
-                gs = snap.gate_by_id(gate.gate_id)
-                if gs:
-                    if gs.status == "restricted":
-                        penalty += 1500.0
-                    elif gs.status == "closed":
-                        penalty += 99999.0
-
-        # Active incident severity penalty
-        for incident in snap.incidents:
-            if incident.status == "active":
-                affected = False
-                if incident.location in (e.from_id, e.to_id):
-                    affected = True
-                elif incident.zone_id and incident.zone_id in (from_zone, to_zone):
-                    affected = True
-                elif incident.location and incident.location in (from_zone, to_zone):
-                    affected = True
-                elif incident.zone_id and (incident.zone_id in (e.from_id, e.to_id) or f"WP-{incident.zone_id}" in (e.from_id, e.to_id)):
-                    affected = True
-
-                if affected:
-                    if incident.severity == "low":
-                        penalty += 500.0
-                    elif incident.severity == "medium":
-                        penalty += 1500.0
-                    elif incident.severity == "high":
-                        penalty += 5000.0
-
-        cost += penalty
+        cost += _calculate_edge_penalty(e, ctx, snap)
         g[e.from_id].append((e.to_id, cost))
 
     return g

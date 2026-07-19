@@ -210,6 +210,19 @@ class StadiumSimulator:
                 self._crowd["C-N"].occupancy = int(self._crowd["C-N"].capacity * 0.90)
                 self._crowd["C-N"].density = 0.90
 
+    def _get_gate_density(self, gid: str) -> float:
+        served = self.model.gate_by_id(gid)
+        if not served:
+            return 0.0
+        total_density = 0.0
+        count = 0
+        for z in served.served_zone_ids:
+            cd = self._crowd.get(z)
+            if cd:
+                total_density += cd.density
+                count += 1
+        return total_density / count if count > 0 else 0.0
+
     def _update_gates(self, phase: MatchPhase) -> None:
         """Updates gate throughput and queue wait times based on phase and crowd density.
 
@@ -244,17 +257,7 @@ class StadiumSimulator:
 
             gs.throughput_per_min = tp
 
-            served = self.model.gate_by_id(gid)
-            dense = 0.0
-            if served:
-                total_density = 0.0
-                count = 0
-                for z in served.served_zone_ids:
-                    cd = self._crowd.get(z)
-                    if cd:
-                        total_density += cd.density
-                        count += 1
-                dense = total_density / count if count > 0 else 0.0
+            dense = self._get_gate_density(gid)
 
             if override == "restricted":
                 gs.status = "restricted"
@@ -394,6 +397,24 @@ class StadiumSimulator:
             self._snapshot_cache = None
             return inc
 
+    def _trigger_reset(self) -> None:
+        self._active_scenarios.clear()
+        self._incidents = [i for i in self._incidents if not i.incident_id.startswith("INC-SCENARIO-")]
+        phase = _phase_for(self.sim_time)
+        self._update_gates(phase)
+        for zid, cd in self._crowd.items():
+            if phase == MatchPhase.PRE_OPEN:
+                target_frac = 0.0
+            elif self._is_concourse_zone(zid):
+                concourse_boost = _PHASE_CONCOURSE_BOOST.get(phase, 0.0)
+                target_frac = min(1.0, concourse_boost + 0.1)
+            else:
+                seat_target = _PHASE_SEAT_TARGET.get(phase, 0.0)
+                target_frac = seat_target
+            cd.occupancy = int(cd.capacity * target_frac)
+            cd.density = target_frac
+        self._snapshot_cache = None
+
     def trigger_scenario(self, scenario: str) -> Incident | None:
         """Injects a specific scenario incident or resets scenarios.
 
@@ -414,22 +435,7 @@ class StadiumSimulator:
                 raise ValueError(f"Invalid scenario name: {scenario}")
 
             if scenario == "reset":
-                self._active_scenarios.clear()
-                self._incidents = [i for i in self._incidents if not i.incident_id.startswith("INC-SCENARIO-")]
-                phase = _phase_for(self.sim_time)
-                self._update_gates(phase)
-                for zid, cd in self._crowd.items():
-                    if phase == MatchPhase.PRE_OPEN:
-                        target_frac = 0.0
-                    elif self._is_concourse_zone(zid):
-                        concourse_boost = _PHASE_CONCOURSE_BOOST.get(phase, 0.0)
-                        target_frac = min(1.0, concourse_boost + 0.1)
-                    else:
-                        seat_target = _PHASE_SEAT_TARGET.get(phase, 0.0)
-                        target_frac = seat_target
-                    cd.occupancy = int(cd.capacity * target_frac)
-                    cd.density = target_frac
-                self._snapshot_cache = None
+                self._trigger_reset()
                 return None
 
             elif scenario == "gate_malfunction":
